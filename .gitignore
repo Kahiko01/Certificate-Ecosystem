@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+*.sqlite-journal
+
+# Docker
+*.pid
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Secrets and keys
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+keys/
+
+# Docker volumes
+volumes/
+data/
+postgres_data/
+redis_data/
+minio_data/
+elasticsearch_data/
+grafana_data/
+prometheus_data/
+
+# Keep only essential files
+!*.sql
+!*.sh
+!*.md
+!*.html
+!*.py

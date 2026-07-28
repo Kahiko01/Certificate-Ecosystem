@@ -1,0 +1,107 @@
+# api-gateway.yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: auth-jwt
+  namespace: certificate-system
+spec:
+  forwardAuth:
+    address: http://auth-service:8080/validate
+    authResponseHeaders:
+      - X-User-ID
+      - X-User-Roles
+      - X-User-Permissions
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit
+  namespace: certificate-system
+spec:
+  rateLimit:
+    average: 100
+    burst: 200
+    period: 1m
+    sourceCriterion:
+      ipStrategy:
+        depth: 1
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: public-rate-limit
+  namespace: certificate-system
+spec:
+  rateLimit:
+    average: 10
+    burst: 20
+    period: 1m
+    sourceCriterion:
+      ipStrategy:
+        depth: 1
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: cors
+  namespace: certificate-system
+spec:
+  headers:
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    accessControlAllowHeaders:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+    accessControlAllowOriginList:
+      - https://university.ac.ke
+      - https://admin.university.ac.ke
+      - https://verify.university.ac.ke
+    accessControlMaxAge: 86400
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: certificate-api
+  namespace: certificate-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Authentication Routes
+    - kind: Rule
+      match: Host(`api.university.ac.ke`) && PathPrefix(`/auth`)
+      services:
+        - name: auth-service
+          port: 8080
+      middlewares:
+        - name: rate-limit
+        - name: cors
+
+    # Certificate Management Routes
+    - kind: Rule
+      match: Host(`api.university.ac.ke`) && PathPrefix(`/certificates`)
+      services:
+        - name: certificate-service
+          port: 8080
+      middlewares:
+        - name: auth-jwt
+        - name: rate-limit
+
+    # Public Verification Routes
+    - kind: Rule
+      match: Host(`verify.university.ac.ke`) && PathPrefix(`/verify`)
+      services:
+        - name: verification-service
+          port: 8080
+      middlewares:
+        - name: public-rate-limit
+        - name: cors

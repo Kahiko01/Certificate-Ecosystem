@@ -1,0 +1,68 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: certificate-postgres
+    environment:
+      POSTGRES_DB: certificate_ecosystem
+      POSTGRES_USER: cert_admin
+      POSTGRES_PASSWORD: secure_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - certificate-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cert_admin -d certificate_ecosystem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: certificate-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - certificate-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Certificate Service
+  certificate-service:
+    image: python:3.11-slim
+    container_name: certificate-service
+    working_dir: /app
+    command: >
+      sh -c "pip install -q fastapi uvicorn psycopg2-binary redis && 
+             python -c \"import sys; print('Python ready')\" &&
+             uvicorn certificate_service:app --host 0.0.0.0 --port 8000"
+    environment:
+      - DATABASE_URL=postgresql://cert_admin:secure_password_123@postgres:5432/certificate_ecosystem
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./certificate_service.py:/app/certificate_service.py
+    networks:
+      - certificate-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  certificate-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

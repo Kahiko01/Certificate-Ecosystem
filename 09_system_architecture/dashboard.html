@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Certificate Ecosystem - Smart Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+        }
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .card:hover { border-color: rgba(255,255,255,0.15); }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent-3);
+        }
+        .status-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent-3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--accent-5);
+        }
+        .status-badge.offline .dot { background: var(--accent-5); animation: none; }
+
+        .btn-icon {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); transform: rotate(15deg); }
+
+        /* API Config */
+        .api-config {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        .api-config label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+        .api-config input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .api-config input:focus {
+            outline: none;
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--accent-1); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3); }
+        .btn-primary:hover { background: #4f46e5; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        .btn-gradient { background: linear-gradient(135deg, var(--accent-2), var(--accent-1)); }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3); }
+        .btn-block { width: 100%; justify-content: center; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number {
+            font-size: 30px;
+            font-weight: 800;
+            display: block;
+            margin: 8px 0 4px;
+            background: linear-gradient(135deg, #e0e7ff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-card .label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .stat-card .icon { font-size: 24px; }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container { position: relative; height: 260px; }
+        .chart-container h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* Forms */
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+        }
+        .form-control::placeholder { color: var(--text-secondary); opacity: 0.5; }
+        select.form-control { cursor: pointer; appearance: none; }
+        select.form-control option { background: var(--bg-secondary); }
+
+        /* Clearance Items */
+        .clearance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .clearance-item {
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.15);
+        }
+        .clearance-item.cleared { border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
+        .clearance-item.not-cleared { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); }
+        .clearance-item .dept-name { font-weight: 600; font-size: 13px; }
+        .clearance-item .dept-status { font-size: 12px; font-weight: 600; }
+        .clearance-item.cleared .dept-status { color: var(--accent-3); }
+        .clearance-item.not-cleared .dept-status { color: var(--accent-5); }
+
+        /* Result Boxes */
+        .result-box {
+            margin-top: 14px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-3); }
+        .result-box.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--accent-5); }
+        .result-box.info { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: var(--accent-1); }
+        .result-box.warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); color: var(--accent-4); }
+
+        /* Certificate Detail */
+        .cert-detail {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .cert-detail p { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
+        .cert-detail p:last-child { border-bottom: none; }
+        .cert-detail strong { color: var(--text-primary); }
+        .verification-code {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-2);
+            background: rgba(6, 182, 212, 0.1);
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+        }
+
+        .flex { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+        .mt-12 { margin-top: 12px; }
+        .mb-12 { margin-bottom: 12px; }
+        .text-muted { color: var(--text-secondary); font-size: 13px; }
+        .text-center { text-align: center; }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 1024px) {
+            .charts-grid, .main-grid { grid-template-columns: 1fr; }
+            .clearance-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .api-config { flex-direction: column; }
+            .api-config input { width: 100%; }
+            .flex { flex-direction: column; align-items: stretch; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 22px; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-secondary); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ===== HEADER ===== -->
+        <div class="card">
+            <div class="header">
+                <h1>🎓 Certificate Ecosystem</h1>
+                <div class="header-right">
+                    <span id="statusBadge" class="status-badge">
+                        <span class="dot"></span> Online
+                    </span>
+                    <span style="font-size: 13px; color: var(--text-secondary);" id="lastUpdate"></span>
+                    <button class="btn-icon" onclick="refreshAll()">🔄</button>
+                </div>
+            </div>
+            <div class="api-config">
+                <label>🔗 API</label>
+                <input type="text" id="apiUrlInput" value="http://127.0.0.1:8000">
+                <button class="btn btn-primary" onclick="updateAPI()">Connect</button>
+                <button class="btn btn-secondary" onclick="autoDetectAPI()">Auto-Detect</button>
+            </div>
+            <div id="apiStatus" style="margin-top:10px; font-size:13px; color:var(--accent-3);"></div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="totalCerts">-</span><div class="label">Total Certificates</div></div>
+            <div class="stat-card"><span class="icon">👨‍🎓</span><span class="number" id="totalStudents">-</span><div class="label">Total Students</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="issuedCerts">-</span><div class="label">Issued</div></div>
+            <div class="stat-card"><span class="icon">🔓</span><span class="number" id="clearedStudents">-</span><div class="label">Fully Cleared</div></div>
+            <div class="stat-card"><span class="icon">🔍</span><span class="number" id="verifications">-</span><div class="label">Verifications</div></div>
+        </div>
+
+        <!-- ===== CHARTS ===== -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="chart-container">
+                    <h3>📊 Certificate Status</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chart-container">
+                    <h3>📈 Issuance Trend</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MAIN ===== -->
+        <div class="main-grid">
+            <!-- LEFT -->
+            <div>
+                <!-- Clearance Check -->
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">🔍 Student Clearance</h3>
+                    <div class="flex">
+                        <div class="form-group" style="flex:1; margin:0;">
+                            <input class="form-control" type="text" id="clearanceStudentId" placeholder="Student UUID" value="550e8400-e29b-41d4-a716-446655440001">
+                        </div>
+                        <button class="btn btn-primary" onclick="checkClearance()">Check</button>
+                    </div>
+                    <div id="clearanceResult" class="result-box"></div>
+                    <div id="clearanceDetails"></div>
+                </div>
+
+                <!-- Issue Certificate -->
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">🎓 Issue Certificate</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Student ID</label>
+                            <input class="form-control" type="text" id="certStudentId" value="550e8400-e29b-41d4-a716-446655440001">
+                        </div>
+                        <div class="form-group">
+                            <label>Programme ID</label>
+                            <input class="form-control" type="text" id="certProgrammeId" value="6d3db2b3-0a11-49c9-a5c9-8d5b7782cf74">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Issue Date</label>
+                            <input class="form-control" type="date" id="certIssueDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Authorized By</label>
+                            <input class="form-control" type="text" id="certAuthorizer" value="550e8400-e29b-41d4-a716-446655440000">
+                        </div>
+                    </div>
+                    <button class="btn btn-gradient btn-block" onclick="issueCertificate()">Generate</button>
+                    <div id="certResult" class="result-box"></div>
+                    <div id="certDetails"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div>
+                <!-- Department Clearance -->
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">🏛️ Department Clearance</h3>
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        <input class="form-control" type="text" id="deptStudentId" value="550e8400-e29b-41d4-a716-446655440001">
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Department</label>
+                            <select class="form-control" id="departmentSelect">
+                                <option value="FINANCE">💰 Finance</option>
+                                <option value="ACADEMIC">📚 Academic</option>
+                                <option value="LIBRARY">📖 Library</option>
+                                <option value="ACCOMMODATION">🏠 Accommodation</option>
+                                <option value="DISCIPLINE">⚖️ Discipline</option>
+                                <option value="REGISTRY">📋 Registry</option>
+                                <option value="SENATE">🏛️ Senate</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Authorizer</label>
+                            <input class="form-control" type="text" id="authorizerId" value="550e8400-e29b-41d4-a716-446655440000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comments</label>
+                        <input class="form-control" type="text" id="clearanceComments" placeholder="Reason for clearance">
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="clearDepartment()">✅ Clear Department</button>
+                    <div id="clearDeptResult" class="result-box"></div>
+                </div>
+
+                <!-- Financial -->
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">💰 Financial Clearance</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Academic Year</label>
+                            <input class="form-control" type="number" id="academicYear" value="2026">
+                        </div>
+                        <div class="form-group">
+                            <label>Semester</label>
+                            <select class="form-control" id="semesterSelect">
+                                <option value="1">Sem 1</option>
+                                <option value="2">Sem 2</option>
+                                <option value="3">Sem 3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Fees Due (KES)</label>
+                            <input class="form-control" type="number" id="feesDue" value="100000">
+                        </div>
+                        <div class="form-group">
+                            <label>Fees Paid (KES)</label>
+                            <input class="form-control" type="number" id="feesPaid" value="100000">
+                        </div>
+                    </div>
+                    <button class="btn btn-warning btn-block" onclick="updateFinancial()">Sync Financials</button>
+                    <div id="financialResult" class="result-box"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ===== CONFIG =====
+        let API = localStorage.getItem('apiUrl') || 'http://127.0.0.1:8000';
+        document.getElementById('apiUrlInput').value = API;
+        document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('clearanceComments').value = 'Cleared from dashboard';
+
+        let statusChart = null, trendChart = null;
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // ===== API FUNCTIONS =====
+        function autoDetectAPI() {
+            const urls = ['http://127.0.0.1:8000', 'http://localhost:8000', 'http://172.19.0.4:8000'];
+            let found = false;
+            urls.forEach(url => {
+                if (!found) {
+                    fetch(url + '/health')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'ok') {
+                                document.getElementById('apiUrlInput').value = url;
+                                API = url;
+                                localStorage.setItem('apiUrl', url);
+                                found = true;
+                                document.getElementById('apiStatus').textContent = '✅ Connected to: ' + url;
+                                refreshAll();
+                            }
+                        })
+                        .catch(() => {});
+                }
+            });
+            setTimeout(() => {
+                if (!found) {
+                    document.getElementById('apiStatus').textContent = '❌ Could not auto-detect API';
+                    document.getElementById('apiStatus').style.color = 'var(--accent-5)';
+                }
+            }, 2000);
+        }
+
+        function updateAPI() {
+            API = document.getElementById('apiUrlInput').value;
+            localStorage.setItem('apiUrl', API);
+            document.getElementById('apiStatus').textContent = 'Connecting to: ' + API + '...';
+            refreshAll();
+        }
+
+        function refreshAll() {
+            if (!API) { document.getElementById('apiStatus').textContent = '⚠️ Please set API URL'; return; }
+            checkStatus();
+            loadStats();
+            loadCharts();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        function checkStatus() {
+            fetch(API + "/health")
+                .then(r => r.json())
+                .then(data => {
+                    const badge = document.getElementById('statusBadge');
+                    if (data.status === 'ok') {
+                        badge.className = 'status-badge';
+                        badge.innerHTML = '<span class="dot"></span> Online';
+                        document.getElementById('apiStatus').textContent = '✅ Connected to: ' + API;
+                        document.getElementById('apiStatus').style.color = 'var(--accent-3)';
+                    } else {
+                        badge.className = 'status-badge offline';
+                        badge.innerHTML = '<span class="dot"></span> Degraded';
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('statusBadge').className = 'status-badge offline';
+                    document.getElementById('statusBadge').innerHTML = '<span class="dot"></span> Offline';
+                    document.getElementById('apiStatus').textContent = '❌ Cannot connect to: ' + API;
+                    document.getElementById('apiStatus').style.color = 'var(--accent-5)';
+                });
+        }
+
+        function loadStats() {
+            fetch(API + "/stats")
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('totalCerts').textContent = data.total_certificates || 0;
+                    document.getElementById('totalStudents').textContent = data.total_students || 0;
+                    document.getElementById('issuedCerts').textContent = data.certificates_by_status?.ISSUED || 0;
+                    document.getElementById('clearedStudents').textContent = data.total_students || 0;
+                    document.getElementById('verifications').textContent = data.total_certificates || 0;
+                })
+                .catch(() => {});
+        }
+
+        function loadCharts() {
+            // Status Chart
+            fetch(API + "/stats")
+                .then(r => r.json())
+                .then(data => {
+                    const statuses = data.certificates_by_status || {};
+                    const labels = Object.keys(statuses);
+                    const values = Object.values(statuses);
+                    const colors = ['#10b981', '#6366f1', '#06b6d4', '#f59e0b', '#ef4444'];
+                    
+                    const ctx = document.getElementById('statusChart').getContext('2d');
+                    if (statusChart) statusChart.destroy();
+                    
+                    statusChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels.length ? labels : ['No Data'],
+                            datasets: [{
+                                data: labels.length ? values : [1],
+                                backgroundColor: labels.length ? colors.slice(0, labels.length) : ['rgba(255,255,255,0.05)'],
+                                borderColor: '#0f172a',
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'right', labels: { padding: 16, usePointStyle: true } }
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                })
+                .catch(() => {});
+
+            // Trend Chart
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const data = months.map(() => Math.floor(Math.random() * 20) + 5);
+            
+            const gradient = ctx2.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+            trendChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Certificates',
+                        data: data,
+                        borderColor: '#6366f1',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#6366f1',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 5 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== CLEARANCE CHECK =====
+        function checkClearance() {
+            const studentId = document.getElementById('clearanceStudentId').value.trim();
+            const resultDiv = document.getElementById('clearanceResult');
+            const detailsDiv = document.getElementById('clearanceDetails');
+
+            if (!studentId) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please enter a Student ID';
+                return;
+            }
+
+            resultDiv.className = 'result-box show info';
+            resultDiv.textContent = '⏳ Checking clearance...';
+            detailsDiv.innerHTML = '';
+
+            fetch(API + "/students/clearance", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: studentId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.detail) {
+                    resultDiv.className = 'result-box show error';
+                    resultDiv.textContent = '❌ ' + data.detail;
+                    return;
+                }
+
+                resultDiv.className = 'result-box show ' + (data.all_cleared ? 'success' : 'warning');
+                resultDiv.textContent = data.all_cleared ? '✅ Student is FULLY CLEARED!' : '⚠️ Student has pending clearances';
+
+                let html = '<div class="clearance-grid">';
+                for (const [dept, status] of Object.entries(data.departments)) {
+                    const cleared = status.cleared === true || status.status === 'CLEARED';
+                    html += `
+                        <div class="clearance-item ${cleared ? 'cleared' : 'not-cleared'}">
+                            <div>
+                                <div class="dept-name">${dept}</div>
+                                <div style="font-size:11px;color:var(--text-secondary);">${status.message || status.comments || ''}</div>
+                            </div>
+                            <div class="dept-status">${cleared ? '✅ Cleared' : '❌ Pending'}</div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                detailsDiv.innerHTML = html;
+            })
+            .catch(err => {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ ' + err.message;
+            });
+        }
+
+        // ===== CLEAR DEPARTMENT =====
+        function clearDepartment() {
+            const studentId = document.getElementById('deptStudentId').value.trim();
+            const department = document.getElementById('departmentSelect').value;
+            const authorizer = document.getElementById('authorizerId').value.trim();
+            const comments = document.getElementById('clearanceComments').value.trim();
+            const resultDiv = document.getElementById('clearDeptResult');
+
+            if (!studentId || !authorizer) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please fill all required fields';
+                return;
+            }
+
+            resultDiv.className = 'result-box show info';
+            resultDiv.textContent = '⏳ Clearing department...';
+
+            fetch(API + "/departments/clear", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    department_code: department,
+                    cleared_by: authorizer,
+                    comments: comments || 'Cleared from dashboard'
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.detail) {
+                    resultDiv.className = 'result-box show error';
+                    resultDiv.textContent = '❌ ' + data.detail;
+                    return;
+                }
+                resultDiv.className = 'result-box show success';
+                resultDiv.textContent = '✅ ' + (data.message || 'Department cleared!');
+                if (document.getElementById('clearanceStudentId').value === studentId) checkClearance();
+                loadCharts();
+            })
+            .catch(err => {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ ' + err.message;
+            });
+        }
+
+        // ===== FINANCIAL UPDATE =====
+        function updateFinancial() {
+            const studentId = document.getElementById('deptStudentId').value.trim();
+            const academicYear = parseInt(document.getElementById('academicYear').value);
+            const semester = parseInt(document.getElementById('semesterSelect').value);
+            const feesDue = parseFloat(document.getElementById('feesDue').value);
+            const feesPaid = parseFloat(document.getElementById('feesPaid').value);
+            const resultDiv = document.getElementById('financialResult');
+
+            if (!studentId) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please enter a Student ID';
+                return;
+            }
+
+            resultDiv.className = 'result-box show info';
+            resultDiv.textContent = '⏳ Updating financials...';
+
+            fetch(API + "/students/financial", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    academic_year: academicYear,
+                    semester: semester,
+                    total_fees_due: feesDue,
+                    total_fees_paid: feesPaid
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.detail) {
+                    resultDiv.className = 'result-box show error';
+                    resultDiv.textContent = '❌ ' + data.detail;
+                    return;
+                }
+                resultDiv.className = 'result-box show ' + (data.is_cleared ? 'success' : 'warning');
+                resultDiv.innerHTML = data.is_cleared ? '✅ Financial clearance updated!' : '⚠️ Balance: KES ' + data.balance.toFixed(2);
+                if (document.getElementById('clearanceStudentId').value === studentId) checkClearance();
+                loadCharts();
+            })
+            .catch(err => {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ ' + err.message;
+            });
+        }
+
+        // ===== ISSUE CERTIFICATE =====
+        function issueCertificate() {
+            const studentId = document.getElementById('certStudentId').value.trim();
+            const programmeId = document.getElementById('certProgrammeId').value.trim();
+            const issueDate = document.getElementById('certIssueDate').value;
+            const authorizer = document.getElementById('certAuthorizer').value.trim();
+            const resultDiv = document.getElementById('certResult');
+            const detailsDiv = document.getElementById('certDetails');
+
+            if (!studentId || !programmeId || !authorizer) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please fill all fields';
+                return;
+            }
+
+            resultDiv.className = 'result-box show info';
+            resultDiv.textContent = '⏳ Issuing certificate...';
+            detailsDiv.innerHTML = '';
+
+            fetch(API + "/certificates", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    programme_id: programmeId,
+                    issue_date: issueDate,
+                    authorized_by: authorizer
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.detail) {
+                    if (data.detail.message) {
+                        resultDiv.className = 'result-box show warning';
+                        resultDiv.innerHTML = '⚠️ ' + data.detail.message;
+                        if (data.detail.clearance) {
+                            let html = '<div class="mt-12" style="font-size:13px;"><strong>Pending:</strong> ';
+                            for (const [dept, status] of Object.entries(data.detail.clearance.departments)) {
+                                if (!(status.cleared === true || status.status === 'CLEARED')) {
+                                    html += `<span style="color:var(--accent-5);">${dept} </span>`;
+                                }
+                            }
+                            html += '</div>';
+                            detailsDiv.innerHTML = html;
+                        }
+                    } else {
+                        resultDiv.className = 'result-box show error';
+                        resultDiv.textContent = '❌ ' + JSON.stringify(data.detail);
+                    }
+                    return;
+                }
+
+                if (data.certificate_id) {
+                    resultDiv.className = 'result-box show success';
+                    resultDiv.innerHTML = '🎉 Certificate issued successfully!';
+                    detailsDiv.innerHTML = `
+                        <div class="cert-detail">
+                            <p><span>ID</span> <strong>${data.certificate_id.substring(0,18)}...</strong></p>
+                            <p><span>Number</span> <strong>${data.certificate_number}</strong></p>
+                            <p><span>Verification</span> <span class="verification-code">${data.verification_code}</span></p>
+                            <p><span>Status</span> <strong>${data.status}</strong></p>
+                            <div style="margin-top:12px;">
+                                <button class="btn btn-secondary btn-block" onclick="window.open('${API}/verify/${data.verification_code}')">🔍 Verify</button>
+                            </div>
+                        </div>
+                    `;
+                    loadStats();
+                    loadCharts();
+                } else {
+                    resultDiv.className = 'result-box show error';
+                    resultDiv.textContent = '❌ Failed to issue certificate';
+                }
+            })
+            .catch(err => {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ ' + err.message;
+            });
+        }
+
+        // ===== INIT =====
+        setTimeout(() => { updateAPI(); setTimeout(checkClearance, 1000); }, 500);
+        setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>
