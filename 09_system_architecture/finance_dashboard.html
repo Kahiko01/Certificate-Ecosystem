@@ -257,8 +257,34 @@
                 </div>
             </div>
 
+    <!-- Inventory Section -->
+    <div class="card">
+        <div class="card-title">📁 Finance File Inventory</div>
+        <div class="grid-2">
+            <div class="form-group"><label>File Name</label><input class="form-control" type="text" id="fileName" placeholder="Enter file name"></div>
+            <div class="form-group"><label>File Number</label><input class="form-control" type="text" id="fileNumber" placeholder="e.g., FIN-2026-001"></div>
+            <div class="form-group"><label>Category</label><select class="form-control" id="fileCategory"><option value="Invoices">Invoices</option><option value="Receipts">Receipts</option><option value="Statements">Statements</option><option value="Reports">Reports</option><option value="Other">Other</option></select></div>
+            <div class="form-group"><label>Location</label><input class="form-control" type="text" id="fileLocation" placeholder="e.g., Cabinet A, Shelf 2"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">📁 Add File</button>
+        <div id="inventoryResult" class="result-box"></div>
+        <div class="table-wrap" style="margin-top:12px;"><table><thead><tr><th>#</th><th>File Name</th><th>Number</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>
+    </div>
             <!-- Quick Actions -->
             <div class="card">
+    <!-- Inventory Section -->
+    <div class="card">
+        <div class="card-title">📁 Finance File Inventory</div>
+        <div class="grid-2">
+            <div class="form-group"><label>File Name</label><input class="form-control" type="text" id="fileName" placeholder="Enter file name"></div>
+            <div class="form-group"><label>File Number</label><input class="form-control" type="text" id="fileNumber" placeholder="e.g., FIN-2026-001"></div>
+            <div class="form-group"><label>Category</label><select class="form-control" id="fileCategory"><option value="Invoices">Invoices</option><option value="Receipts">Receipts</option><option value="Statements">Statements</option><option value="Reports">Reports</option><option value="Other">Other</option></select></div>
+            <div class="form-group"><label>Location</label><input class="form-control" type="text" id="fileLocation" placeholder="e.g., Cabinet A, Shelf 2"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">📁 Add File</button>
+        <div id="inventoryResult" class="result-box"></div>
+        <div class="table-wrap" style="margin-top:12px;"><table><thead><tr><th>#</th><th>File Name</th><th>Number</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>
+    </div>
                 <div class="card-title">⚡ Quick Actions</div>
                 <div class="grid-2">
                     <button class="btn btn-success btn-sm" onclick="clearAllStudents()">🔄 Clear All</button>
@@ -677,4 +703,84 @@ function updateUserBadge() {
     } catch {}
 }
 document.addEventListener('DOMContentLoaded', updateUserBadge);
+</script>
+<script>
+// Finance Inventory Management
+let financeInventory = [];
+let financeNextId = 1;
+
+function loadFinanceInventory() {
+    const saved = localStorage.getItem('inventory_finance');
+    if (saved) {
+        try {
+            financeInventory = JSON.parse(saved);
+            financeNextId = financeInventory.length + 1;
+        } catch(e) { financeInventory = []; }
+    }
+    renderFinanceInventory();
+}
+
+function renderFinanceInventory() {
+    const tbody = document.getElementById('inventoryTableBody');
+    if (!tbody) return;
+    if (financeInventory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+        return;
+    }
+    tbody.innerHTML = financeInventory.map((item, i) => `
+        <tr>
+            <td>${i+1}</td>
+            <td><strong>${item.name}</strong></td>
+            <td><span style="font-family:monospace;">${item.number}</span></td>
+            <td><span class="badge badge-info">${item.category}</span></td>
+            <td>${item.location}</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editFinanceItem(${item.id})">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteFinanceItem(${item.id})">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function addInventoryItem() {
+    const name = document.getElementById('fileName')?.value?.trim();
+    const number = document.getElementById('fileNumber')?.value?.trim();
+    const category = document.getElementById('fileCategory')?.value || 'Documents';
+    const location = document.getElementById('fileLocation')?.value?.trim();
+    const resultDiv = document.getElementById('inventoryResult');
+    if (!name || !number || !location) {
+        if (resultDiv) { resultDiv.className = 'result-box show error'; resultDiv.textContent = '⚠️ Please fill all fields'; }
+        return;
+    }
+    financeInventory.push({ id: financeNextId++, name, number, category, location, status: 'Active' });
+    localStorage.setItem('inventory_finance', JSON.stringify(financeInventory));
+    renderFinanceInventory();
+    ['fileName','fileNumber','fileLocation'].forEach(id => document.getElementById(id).value = '');
+    if (resultDiv) { resultDiv.className = 'result-box show success'; resultDiv.textContent = '✅ File added'; setTimeout(() => resultDiv.className = 'result-box', 3000); }
+}
+
+function deleteFinanceItem(id) {
+    if (confirm('Delete this file?')) {
+        financeInventory = financeInventory.filter(i => i.id !== id);
+        localStorage.setItem('inventory_finance', JSON.stringify(financeInventory));
+        renderFinanceInventory();
+    }
+}
+
+function editFinanceItem(id) {
+    const item = financeInventory.find(i => i.id === id);
+    if (!item) return;
+    const newName = prompt('File Name:', item.name);
+    if (newName) item.name = newName;
+    const newNumber = prompt('File Number:', item.number);
+    if (newNumber) item.number = newNumber;
+    const newLocation = prompt('Location:', item.location);
+    if (newLocation) item.location = newLocation;
+    localStorage.setItem('inventory_finance', JSON.stringify(financeInventory));
+    renderFinanceInventory();
+}
+
+// Load inventory on page load
+document.addEventListener('DOMContentLoaded', loadFinanceInventory);
 </script>

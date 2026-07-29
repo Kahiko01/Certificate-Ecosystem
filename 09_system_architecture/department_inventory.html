@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📁 Department Inventory Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; color: white; }
+        .btn-primary { background: #6366f1; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-warning { background: #f59e0b; color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: #94a3b8;
+        }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: white; font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 8px 10px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; background: #0f172a; }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .barcode { font-family: 'Courier New', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .text-muted { color: #94a3b8; font-size: 11px; }
+        .text-center { text-align: center; }
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 Department Inventory Management</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid-3">
+            <div class="card">
+                <div style="text-align:center;padding:10px;">
+                    <div style="font-size:32px;">📁</div>
+                    <div style="font-weight:600;font-size:18px;" id="totalFiles">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Total Files</div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="text-align:center;padding:10px;">
+                    <div style="font-size:32px;">🏛️</div>
+                    <div style="font-weight:600;font-size:18px;" id="totalDepartments">5</div>
+                    <div style="font-size:12px;color:#94a3b8;">Departments</div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="text-align:center;padding:10px;">
+                    <div style="font-size:32px;">📂</div>
+                    <div style="font-weight:600;font-size:18px;" id="activeFiles">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Active Files</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Inventory Sections -->
+        <div class="card">
+            <div class="card-title">🏛️ All Departments Inventory</div>
+            <div class="grid-3" id="deptSummary">
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#10b981;">💰 Finance</div>
+                    <div id="financeCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#818cf8;">👨‍🏫 Dean</div>
+                    <div id="deanCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#f472b6;">🏠 Accommodation</div>
+                    <div id="accommodationCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#f59e0b;">⚖️ Discipline</div>
+                    <div id="disciplineCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#06b6d4;">📋 Registry</div>
+                    <div id="registryCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:600;color:#8b5cf6;">📚 Academic</div>
+                    <div id="academicCount" style="font-size:24px;font-weight:800;">0</div>
+                    <div style="font-size:11px;color:#94a3b8;">Files</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="card">
+            <div class="card-title">📋 All Files Across Departments</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>File Name</th>
+                            <th>File Number</th>
+                            <th>Category</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allFilesTable">
+                        <tr><td colspan="6" class="text-center text-muted">No files in inventory</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer" style="text-align:center;color:#475569;font-size:13px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
+            🎓 Certificate Ecosystem · Department Inventory Management
+        </div>
+    </div>
+
+    <script>
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function refreshAll() {
+            loadAllInventories();
+        }
+
+        function loadAllInventories() {
+            const departments = ['finance', 'dean', 'accommodation', 'discipline', 'registry', 'academic'];
+            const deptNames = {
+                'finance': '💰 Finance',
+                'dean': '👨‍🏫 Dean',
+                'accommodation': '🏠 Accommodation',
+                'discipline': '⚖️ Discipline',
+                'registry': '📋 Registry',
+                'academic': '📚 Academic'
+            };
+            const deptShort = {
+                'finance': 'financeCount',
+                'dean': 'deanCount',
+                'accommodation': 'accommodationCount',
+                'discipline': 'disciplineCount',
+                'registry': 'registryCount',
+                'academic': 'academicCount'
+            };
+
+            let allFiles = [];
+            let total = 0;
+
+            departments.forEach(dept => {
+                const saved = localStorage.getItem(`inventory_${dept}`);
+                let items = [];
+                if (saved) {
+                    try { items = JSON.parse(saved); } catch(e) {}
+                }
+                const count = items.length;
+                total += count;
+                document.getElementById(deptShort[dept]).textContent = count;
+                items.forEach(item => {
+                    allFiles.push({
+                        department: deptNames[dept],
+                        ...item
+                    });
+                });
+            });
+
+            document.getElementById('totalFiles').textContent = total;
+            document.getElementById('activeFiles').textContent = total;
+
+            const tbody = document.getElementById('allFilesTable');
+            if (allFiles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No files in inventory</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allFiles.map(item => `
+                <tr>
+                    <td><span class="badge badge-info">${item.department}</span></td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="barcode">${item.number}</span></td>
+                    <td>${item.category}</td>
+                    <td>${item.location}</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            loadAllInventories();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!-- ============================================
+     INVENTORY MANAGEMENT COMPONENT
+     Can be embedded in any department dashboard
+     ============================================ -->
+
+<div class="card">
+    <div class="card-title">
+        📁 Department File Inventory
+        <span class="sub" id="inventoryCount">0 files</span>
+    </div>
+    
+    <!-- Add File Form -->
+    <div class="grid-2" style="margin-bottom:12px;">
+        <div class="form-group">
+            <label>File Name</label>
+            <input class="form-control" type="text" id="fileName" placeholder="Enter file name">
+        </div>
+        <div class="form-group">
+            <label>File Number</label>
+            <input class="form-control" type="text" id="fileNumber" placeholder="e.g., FIN-2026-001">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select class="form-control" id="fileCategory">
+                <option value="Documents">Documents</option>
+                <option value="Records">Records</option>
+                <option value="Reports">Reports</option>
+                <option value="Certificates">Certificates</option>
+                <option value="Applications">Applications</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Cabinet Location</label>
+            <input class="form-control" type="text" id="fileLocation" placeholder="e.g., Cabinet A, Shelf 2">
+        </div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">📁 Add File</button>
+    <div id="inventoryResult" class="result-box"></div>
+    
+    <!-- Inventory Table -->
+    <div class="table-wrap" style="margin-top:12px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>File Name</th>
+                    <th>File Number</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+                <tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// ===== INVENTORY MANAGEMENT FUNCTIONS =====
+// This will be initialized by each dashboard
+
+let inventoryItems = [];
+let inventoryNextId = 1;
+
+function initInventory(department) {
+    // Load inventory from localStorage
+    const saved = localStorage.getItem(`inventory_${department}`);
+    if (saved) {
+        try {
+            inventoryItems = JSON.parse(saved);
+            inventoryNextId = inventoryItems.length + 1;
+        } catch (e) {
+            inventoryItems = [];
+        }
+    }
+    renderInventory();
+}
+
+function addInventoryItem() {
+    const name = document.getElementById('fileName').value.trim();
+    const number = document.getElementById('fileNumber').value.trim();
+    const category = document.getElementById('fileCategory').value;
+    const location = document.getElementById('fileLocation').value.trim();
+    const resultDiv = document.getElementById('inventoryResult');
+
+    if (!name || !number || !location) {
+        resultDiv.className = 'result-box show error';
+        resultDiv.textContent = '⚠️ Please fill in all fields';
+        return;
+    }
+
+    inventoryItems.push({
+        id: inventoryNextId++,
+        name: name,
+        number: number,
+        category: category,
+        location: location,
+        status: 'Active',
+        dateAdded: new Date().toISOString().split('T')[0]
+    });
+
+    // Save to localStorage
+    const department = getDepartmentFromURL();
+    localStorage.setItem(`inventory_${department}`, JSON.stringify(inventoryItems));
+
+    renderInventory();
+    document.getElementById('fileName').value = '';
+    document.getElementById('fileNumber').value = '';
+    document.getElementById('fileLocation').value = '';
+
+    resultDiv.className = 'result-box show success';
+    resultDiv.textContent = `✅ File "${name}" added successfully!`;
+    setTimeout(() => resultDiv.className = 'result-box', 3000);
+}
+
+function renderInventory() {
+    const tbody = document.getElementById('inventoryTableBody');
+    const count = document.getElementById('inventoryCount');
+
+    if (inventoryItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+        if (count) count.textContent = '0 files';
+        return;
+    }
+
+    if (count) count.textContent = `${inventoryItems.length} files`;
+
+    tbody.innerHTML = inventoryItems.map((item, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td><strong>${item.name}</strong></td>
+            <td><span class="barcode">${item.number}</span></td>
+            <td><span class="badge badge-info">${item.category}</span></td>
+            <td>${item.location}</td>
+            <td><span class="badge badge-success">${item.status}</span></td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editInventoryItem(${item.id})">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteInventoryItem(${item.id})">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function deleteInventoryItem(id) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        inventoryItems = inventoryItems.filter(item => item.id !== id);
+        const department = getDepartmentFromURL();
+        localStorage.setItem(`inventory_${department}`, JSON.stringify(inventoryItems));
+        renderInventory();
+        showResult('inventoryResult', 'success', '🗑️ File removed');
+    }
+}
+
+function editInventoryItem(id) {
+    const item = inventoryItems.find(i => i.id === id);
+    if (!item) return;
+    
+    const newName = prompt('File Name:', item.name);
+    if (newName) item.name = newName;
+    
+    const newNumber = prompt('File Number:', item.number);
+    if (newNumber) item.number = newNumber;
+    
+    const newLocation = prompt('Location:', item.location);
+    if (newLocation) item.location = newLocation;
+    
+    const department = getDepartmentFromURL();
+    localStorage.setItem(`inventory_${department}`, JSON.stringify(inventoryItems));
+    renderInventory();
+    showResult('inventoryResult', 'success', '✅ File updated');
+}
+
+function getDepartmentFromURL() {
+    const path = window.location.pathname;
+    if (path.includes('finance')) return 'finance';
+    if (path.includes('dean')) return 'dean';
+    if (path.includes('academic')) return 'academic';
+    if (path.includes('registry')) return 'registry';
+    if (path.includes('student')) return 'student';
+    return 'default';
+}
+
+function showResult(id, type, message) {
+    const resultDiv = document.getElementById(id);
+    resultDiv.className = `result-box show ${type}`;
+    resultDiv.textContent = message;
+    setTimeout(() => resultDiv.className = 'result-box', 3000);
+}
+
+// Load inventory on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dept = getDepartmentFromURL();
+    initInventory(dept);
+});
+</script>
