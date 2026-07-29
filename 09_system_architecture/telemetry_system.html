@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Telemetry & Monitoring System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+            --accent-8: #fb923c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-pink { background: var(--accent-7); }
+        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
+        .btn-orange { background: var(--accent-8); }
+        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 20px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 16px; display: block; margin-bottom: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { text-align: left; padding: 6px 8px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-primary); }
+        td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 6px 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white; font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        .badge {
+            padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 600;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .badge-pink { background: rgba(236,72,153,0.15); color: #f472b6; }
+        .result-box {
+            margin-top: 8px; padding: 8px 12px; border-radius: 6px;
+            font-size: 11px; display: none; line-height: 1.4;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        .flex { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 10px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 4px 12px; border-radius: 4px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 11px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        .chart-container { position: relative; height: 150px; }
+        .alert-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid;
+            font-size: 12px;
+        }
+        .alert-critical { border-left-color: #ef4444; background: rgba(239,68,68,0.05); }
+        .alert-high { border-left-color: #f59e0b; background: rgba(245,158,11,0.05); }
+        .alert-medium { border-left-color: #f472b6; background: rgba(236,72,153,0.05); }
+        .alert-low { border-left-color: #818cf8; background: rgba(99,102,241,0.05); }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 8px; font-size: 10px; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Telemetry & Monitoring System</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Admin</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">👤</span><span class="number" id="activeUsers">-</span><div class="label">Active Users</div></div>
+            <div class="stat-card"><span class="icon">🔐</span><span class="number" id="loginAttempts">-</span><div class="label">Login Attempts</div></div>
+            <div class="stat-card"><span class="icon">🚨</span><span class="number" id="fraudAlerts">-</span><div class="label">Fraud Alerts</div></div>
+            <div class="stat-card"><span class="icon">📊</span><span class="number" id="dbOps">-</span><div class="label">DB Operations</div></div>
+            <div class="stat-card"><span class="icon">🖥️</span><span class="number" id="devices">-</span><div class="label">Devices</div></div>
+            <div class="stat-card"><span class="icon">🔍</span><span class="number" id="searches">-</span><div class="label">Searches</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="login" onclick="switchTab('login')">🔐 Login Telemetry</button>
+            <button class="tab" data-tab="user" onclick="switchTab('user')">👤 User Activity</button>
+            <button class="tab" data-tab="database" onclick="switchTab('database')">🗄️ Database Telemetry</button>
+            <button class="tab" data-tab="device" onclick="switchTab('device')">🖥️ Device Intelligence</button>
+            <button class="tab" data-tab="search" onclick="switchTab('search')">🔍 Search Telemetry</button>
+            <button class="tab" data-tab="fraud" onclick="switchTab('fraud')">🚨 Fraud Detection</button>
+        </div>
+
+        <!-- ===== TAB: LOGIN TELEMETRY ===== -->
+        <div id="tab-login" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Login Activity</div>
+                    <div class="chart-container"><canvas id="loginChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Login Trends</div>
+                    <div class="chart-container"><canvas id="loginTrendChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Recent Login Activity</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Status</th><th>IP</th><th>Device</th><th>Location</th><th>Time</th></tr>
+                        </thead>
+                        <tbody id="loginTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: USER ACTIVITY ===== -->
+        <div id="tab-user" class="tab-content hidden">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">🎯 Action Distribution</div>
+                    <div id="actionDistribution"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">👤 Top Users</div>
+                    <div id="topUsersList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Activity Summary</div>
+                    <div id="activitySummary"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 User Activity Log</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Action</th><th>Page</th><th>Time</th><th>Duration</th></tr>
+                        </thead>
+                        <tbody id="userActivityTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: DATABASE TELEMETRY ===== -->
+        <div id="tab-database" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🗄️ Database Operations</div>
+                    <div class="chart-container"><canvas id="dbChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Operation Distribution</div>
+                    <div id="dbStats"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Recent DB Operations</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Operation</th><th>Table</th><th>Records</th><th>Time</th></tr>
+                        </thead>
+                        <tbody id="dbTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: DEVICE INTELLIGENCE ===== -->
+        <div id="tab-device" class="tab-content hidden">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">🖥️ Device Types</div>
+                    <div class="chart-container"><canvas id="deviceChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🌐 OS Distribution</div>
+                    <div class="chart-container"><canvas id="osChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🌍 Browser Distribution</div>
+                    <div id="browserStats"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Connected Devices</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Device</th><th>Type</th><th>OS</th><th>Browser</th><th>User</th><th>Last Seen</th></tr>
+                        </thead>
+                        <tbody id="deviceTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: SEARCH TELEMETRY ===== -->
+        <div id="tab-search" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🔍 Search Activity</div>
+                    <div class="chart-container"><canvas id="searchChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Search Types</div>
+                    <div id="searchStats"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Recent Searches</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Search Type</th><th>Query</th><th>Results</th><th>Time</th></tr>
+                        </thead>
+                        <tbody id="searchTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: FRAUD DETECTION ===== -->
+        <div id="tab-fraud" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🚨 Fraud Alerts</div>
+                    <div id="fraudAlertsList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Alert Severity</div>
+                    <div class="chart-container"><canvas id="fraudChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Fraud Detection Rules</div>
+                <div id="fraudRulesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SAMPLE DATA =====
+        const sampleData = {
+            login: [
+                { user: 'system_admin', status: 'Success', ip: '192.168.1.100', device: 'Desktop', location: 'Nairobi, KE', time: '2026-07-29 14:30:25' },
+                { user: 'registrar', status: 'Success', ip: '192.168.1.101', device: 'Laptop', location: 'Nairobi, KE', time: '2026-07-29 14:15:10' },
+                { user: 'finance_head', status: 'Failed', ip: '192.168.1.102', device: 'Mobile', location: 'Mombasa, KE', time: '2026-07-29 14:00:05' },
+                { user: 'student1', status: 'Success', ip: '10.0.0.50', device: 'Phone', location: 'Kisumu, KE', time: '2026-07-29 13:45:30' },
+                { user: 'unknown', status: 'Failed', ip: '45.33.22.11', device: 'Unknown', location: 'US', time: '2026-07-29 13:30:15' },
+            ],
+            userActivity: [
+                { user: 'system_admin', action: 'Certificate Issued', page: '/certificates', time: '14:30', duration: '45s' },
+                { user: 'registrar', action: 'Student Cleared', page: '/clearance', time: '14:15', duration: '2m' },
+                { user: 'finance_head', action: 'Payment Processed', page: '/finance', time: '14:00', duration: '1m' },
+                { user: 'dean', action: 'Student Record Updated', page: '/students', time: '13:45', duration: '3m' },
+            ],
+            dbOps: [
+                { user: 'system_admin', operation: 'INSERT', table: 'certificates', records: 5, time: '14:30' },
+                { user: 'registrar', operation: 'UPDATE', table: 'students', records: 12, time: '14:15' },
+                { user: 'finance_head', operation: 'INSERT', table: 'payments', records: 8, time: '14:00' },
+                { user: 'dean', operation: 'UPDATE', table: 'students', records: 3, time: '13:45' },
+            ],
+            devices: [
+                { device: 'MacBook Pro', type: 'Laptop', os: 'macOS', browser: 'Chrome', user: 'system_admin', lastSeen: '2026-07-29 14:30' },
+                { device: 'Dell XPS', type: 'Desktop', os: 'Windows', browser: 'Edge', user: 'registrar', lastSeen: '2026-07-29 14:15' },
+                { device: 'iPhone 15', type: 'Phone', os: 'iOS', browser: 'Safari', user: 'student1', lastSeen: '2026-07-29 13:45' },
+            ],
+            searches: [
+                { user: 'system_admin', type: 'Certificate', query: 'CERT-2026-001', results: 1, time: '14:30' },
+                { user: 'registrar', type: 'Student', query: 'John Doe', results: 5, time: '14:15' },
+                { user: 'finance_head', type: 'Payment', query: 'S2024001', results: 3, time: '14:00' },
+            ],
+            fraudAlerts: [
+                { level: 'critical', message: 'Student record edited at 02:30 AM', time: '2026-07-29 02:30', user: 'unknown' },
+                { level: 'high', message: 'Multiple failed logins (5 attempts)', time: '2026-07-29 13:30', user: 'unknown' },
+                { level: 'medium', message: 'Certificate printed twice by same user', time: '2026-07-29 13:00', user: 'registrar' },
+                { level: 'low', message: 'Unusual login time for finance_officer', time: '2026-07-29 12:00', user: 'finance_officer' },
+            ],
+            fraudRules: [
+                '🚨 Grades changed after approval',
+                '🚨 Certificate printed twice',
+                '🚨 Receipt deleted',
+                '🚨 Fee waiver above limit',
+                '🚨 Student record edited at midnight',
+                '🚨 Admin account created',
+                '🚨 Multiple failed logins',
+                '🚨 Bulk export of students',
+                '🚨 Transcript downloaded 50 times',
+                '🚨 Deleted audit logs attempted',
+                '🚨 Login from unknown country',
+                '🚨 Finance officer approving own refund',
+                '🚨 Registry officer issuing duplicate certificates without authorization'
+            ]
+        };
+
+        // ===== CHART INSTANCES =====
+        let charts = {};
+
+        function getUser() {
+            try { const data = localStorage.getItem('user'); return data ? JSON.parse(data) : null; } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            if (tabName === 'login') loadLoginData();
+            if (tabName === 'user') loadUserData();
+            if (tabName === 'database') loadDatabaseData();
+            if (tabName === 'device') loadDeviceData();
+            if (tabName === 'search') loadSearchData();
+            if (tabName === 'fraud') loadFraudData();
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadLoginData();
+            loadUserData();
+            loadDatabaseData();
+            loadDeviceData();
+            loadSearchData();
+            loadFraudData();
+        }
+
+        // ===== LOGIN TELEMETRY =====
+        function loadLoginData() {
+            const tbody = document.getElementById('loginTableBody');
+            tbody.innerHTML = sampleData.login.map(l => `
+                <tr>
+                    <td><strong>${l.user}</strong></td>
+                    <td><span class="badge ${l.status === 'Success' ? 'badge-success' : 'badge-danger'}">${l.status}</span></td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${l.ip}</td>
+                    <td>${l.device}</td>
+                    <td>${l.location}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${l.time}</td>
+                </tr>
+            `).join('');
+
+            // Charts
+            const ctx1 = document.getElementById('loginChart').getContext('2d');
+            if (charts.login) charts.login.destroy();
+            charts.login = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Successful', 'Failed', 'Locked', 'Password Reset'],
+                    datasets: [{
+                        data: [25, 8, 3, 4],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#818cf8'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true, boxWidth: 8 } } },
+                    cutout: '60%'
+                }
+            });
+
+            const ctx2 = document.getElementById('loginTrendChart').getContext('2d');
+            if (charts.loginTrend) charts.loginTrend.destroy();
+            charts.loginTrend = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Logins',
+                        data: [45, 52, 48, 61, 55, 38, 42],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== USER ACTIVITY =====
+        function loadUserData() {
+            const tbody = document.getElementById('userActivityTable');
+            tbody.innerHTML = sampleData.userActivity.map(u => `
+                <tr>
+                    <td><strong>${u.user}</strong></td>
+                    <td><span class="badge badge-purple">${u.action}</span></td>
+                    <td>${u.page}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${u.time}</td>
+                    <td>${u.duration}</td>
+                </tr>
+            `).join('');
+
+            const topUsers = document.getElementById('topUsersList');
+            topUsers.innerHTML = `
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>👤 system_admin</span>
+                    <span><span class="badge badge-info">156</span> actions</span>
+                </div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>👤 registrar</span>
+                    <span><span class="badge badge-info">98</span> actions</span>
+                </div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>👤 finance_head</span>
+                    <span><span class="badge badge-info">67</span> actions</span>
+                </div>
+                <div style="padding:4px 0;display:flex;justify-content:space-between;">
+                    <span>👤 dean</span>
+                    <span><span class="badge badge-info">45</span> actions</span>
+                </div>
+            `;
+
+            document.getElementById('activitySummary').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#10b981;">342</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Total Actions</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#818cf8;">28</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Active Users</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f59e0b;">12</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Avg Actions/User</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f472b6;">2.5h</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Avg Session</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== DATABASE TELEMETRY =====
+        function loadDatabaseData() {
+            const tbody = document.getElementById('dbTableBody');
+            tbody.innerHTML = sampleData.dbOps.map(d => `
+                <tr>
+                    <td><strong>${d.user}</strong></td>
+                    <td><span class="badge ${d.operation === 'INSERT' ? 'badge-success' : d.operation === 'UPDATE' ? 'badge-warning' : 'badge-danger'}">${d.operation}</span></td>
+                    <td>${d.table}</td>
+                    <td>${d.records}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${d.time}</td>
+                </tr>
+            `).join('');
+
+            const ctx = document.getElementById('dbChart').getContext('2d');
+            if (charts.db) charts.db.destroy();
+            charts.db = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['INSERT', 'UPDATE', 'DELETE', 'SELECT'],
+                    datasets: [{
+                        label: 'Operations',
+                        data: [45, 32, 12, 89],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#818cf8'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            document.getElementById('dbStats').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#10b981;">178</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Total Operations</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#ef4444;">3</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Large Exports</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f59e0b;">12</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Mass Updates</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f472b6;">2</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Large Deletes</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== DEVICE INTELLIGENCE =====
+        function loadDeviceData() {
+            const tbody = document.getElementById('deviceTableBody');
+            tbody.innerHTML = sampleData.devices.map(d => `
+                <tr>
+                    <td><strong>${d.device}</strong></td>
+                    <td><span class="badge badge-info">${d.type}</span></td>
+                    <td>${d.os}</td>
+                    <td>${d.browser}</td>
+                    <td>${d.user}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${d.lastSeen}</td>
+                </tr>
+            `).join('');
+
+            const ctx1 = document.getElementById('deviceChart').getContext('2d');
+            if (charts.device) charts.device.destroy();
+            charts.device = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Desktop', 'Laptop', 'Tablet', 'Phone'],
+                    datasets: [{
+                        data: [35, 28, 12, 25],
+                        backgroundColor: ['#818cf8', '#10b981', '#f59e0b', '#f472b6'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true, boxWidth: 8 } } },
+                    cutout: '60%'
+                }
+            });
+
+            const ctx2 = document.getElementById('osChart').getContext('2d');
+            if (charts.os) charts.os.destroy();
+            charts.os = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Windows', 'macOS', 'Linux', 'iOS', 'Android'],
+                    datasets: [{
+                        label: 'Devices',
+                        data: [35, 28, 12, 15, 10],
+                        backgroundColor: ['#818cf8', '#10b981', '#f59e0b', '#f472b6', '#fb923c'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            document.getElementById('browserStats').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <div style="background:rgba(0,0,0,0.2);padding:6px;border-radius:4px;text-align:center;font-size:12px;">
+                        🟦 Chrome 58%
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:6px;border-radius:4px;text-align:center;font-size:12px;">
+                        🟩 Edge 22%
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:6px;border-radius:4px;text-align:center;font-size:12px;">
+                        🟨 Firefox 12%
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:6px;border-radius:4px;text-align:center;font-size:12px;">
+                        🟪 Safari 8%
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== SEARCH TELEMETRY =====
+        function loadSearchData() {
+            const tbody = document.getElementById('searchTableBody');
+            tbody.innerHTML = sampleData.searches.map(s => `
+                <tr>
+                    <td><strong>${s.user}</strong></td>
+                    <td><span class="badge badge-purple">${s.type}</span></td>
+                    <td>${s.query}</td>
+                    <td>${s.results}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${s.time}</td>
+                </tr>
+            `).join('');
+
+            const ctx = document.getElementById('searchChart').getContext('2d');
+            if (charts.search) charts.search.destroy();
+            charts.search = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Searches',
+                        data: [23, 28, 25, 32, 35, 18, 20],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            document.getElementById('searchStats').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#8b5cf6;">181</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Total Searches</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f59e0b;">3</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Brute Force Attempts</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#10b981;">45</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Student Searches</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#f472b6;">12</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">Certificate Searches</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== FRAUD DETECTION =====
+        function loadFraudData() {
+            const alertsList = document.getElementById('fraudAlertsList');
+            alertsList.innerHTML = sampleData.fraudAlerts.map(a => `
+                <div class="alert-item alert-${a.level}">
+                    <div>
+                        <span class="badge ${a.level === 'critical' ? 'badge-danger' : a.level === 'high' ? 'badge-warning' : a.level === 'medium' ? 'badge-pink' : 'badge-info'}">${a.level.toUpperCase()}</span>
+                        ${a.message}
+                        <span style="font-size:10px;color:var(--text-secondary);">${a.time}</span>
+                    </div>
+                    <span style="font-size:10px;color:var(--text-secondary);">${a.user}</span>
+                </div>
+            `).join('');
+
+            const ctx = document.getElementById('fraudChart').getContext('2d');
+            if (charts.fraud) charts.fraud.destroy();
+            charts.fraud = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        label: 'Alerts',
+                        data: [3, 5, 8, 12],
+                        backgroundColor: ['#ef4444', '#f59e0b', '#f472b6', '#818cf8'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            document.getElementById('fraudRulesList').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    ${sampleData.fraudRules.map(rule => `
+                        <div style="background:rgba(0,0,0,0.2);padding:6px 10px;border-radius:4px;font-size:11px;border-left:2px solid #ef4444;">
+                            ${rule}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'Admin'}`;
+            
+            // Stats
+            document.getElementById('activeUsers').textContent = '28';
+            document.getElementById('loginAttempts').textContent = '342';
+            document.getElementById('fraudAlerts').textContent = '28';
+            document.getElementById('dbOps').textContent = '178';
+            document.getElementById('devices').textContent = '42';
+            document.getElementById('searches').textContent = '181';
+            
+            refreshAll();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        init();
+    </script>
+</body>
+</html>
