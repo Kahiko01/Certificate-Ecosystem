@@ -23,20 +23,14 @@
             flex-wrap: wrap;
             gap: 16px;
         }
-        .header-left h1 {
-            font-size: 32px;
+        .header h1 {
+            font-size: 28px;
             font-weight: 800;
             background: linear-gradient(135deg, #e0e7ff, #818cf8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .header-left p { color: #94a3b8; font-size: 14px; margin-top: 4px; }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .user-info {
             background: rgba(30,41,59,0.85);
             padding: 8px 16px;
@@ -55,36 +49,25 @@
             font-weight: 600;
         }
         .role-admin { background: rgba(99,102,241,0.2); color: #818cf8; }
-        .role-registrar { background: rgba(6,182,212,0.2); color: #22d3ee; }
-        .role-finance { background: rgba(16,185,129,0.2); color: #34d399; }
-        .role-academic { background: rgba(245,158,11,0.2); color: #fbbf24; }
-        .role-dean { background: rgba(251,146,60,0.2); color: #fb923c; }
-        .role-student { background: rgba(148,163,184,0.2); color: #94a3b8; }
-        .role-other { background: rgba(148,163,184,0.2); color: #94a3b8; }
         
-        .nav-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
             font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
-        .nav-btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
         .btn-logout { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-        .btn-logout:hover { background: rgba(239,68,68,0.25); }
-        .btn-admin { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
-        .btn-admin:hover { background: rgba(99,102,241,0.25); }
-        .btn-audit { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
-        .btn-audit:hover { background: rgba(139,92,246,0.25); }
-        .btn-users { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
-        .btn-users:hover { background: rgba(16,185,129,0.25); }
+        .btn-logout:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
         
         .stats-row {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -99,13 +82,14 @@
         }
         .stat-box .number { font-size: 28px; font-weight: 800; color: #818cf8; }
         .stat-box .label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+        
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 20px;
         }
         .dashboard-card {
-            background: rgba(30, 41, 59, 0.85);
+            background: rgba(30,41,59,0.85);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 16px;
@@ -114,33 +98,27 @@
             text-decoration: none;
             color: #f8fafc;
             cursor: pointer;
-            position: relative;
         }
         .dashboard-card:hover {
             transform: translateY(-4px);
             border-color: rgba(99,102,241,0.3);
             box-shadow: 0 12px 40px rgba(0,0,0,0.3);
         }
-        .dashboard-card.locked {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .dashboard-card.locked:hover { transform: none; border-color: rgba(255,255,255,0.06); }
-        .dashboard-card .icon { font-size: 40px; display: block; margin-bottom: 12px; }
-        .dashboard-card .name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-        .dashboard-card .description { font-size: 13px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
+        .dashboard-card .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .dashboard-card .name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .dashboard-card .description { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.4; }
         .dashboard-card .badge {
-            display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 11px; font-weight: 600;
+            display: inline-block; padding: 3px 12px; border-radius: 20px;
+            font-size: 10px; font-weight: 600;
         }
-        .badge-all { background: rgba(99,102,241,0.15); color: #818cf8; }
         .badge-finance { background: rgba(16,185,129,0.15); color: #34d399; }
         .badge-registry { background: rgba(6,182,212,0.15); color: #22d3ee; }
-        .badge-academic { background: rgba(245,158,11,0.15); color: #fbbf24; }
         .badge-dean { background: rgba(251,146,60,0.15); color: #fb923c; }
         .badge-student { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .badge-admin { background: rgba(99,102,241,0.15); color: #818cf8; }
         .badge-public { background: rgba(139,92,246,0.15); color: #a78bfa; }
-        .lock-icon { position: absolute; top: 16px; right: 16px; font-size: 20px; opacity: 0.5; }
+        .badge-audit { background: rgba(236,72,153,0.15); color: #f472b6; }
+        
         .footer {
             text-align: center; color: #475569; font-size: 14px;
             margin-top: 40px; padding-top: 20px;
@@ -148,20 +126,21 @@
         }
         @media (max-width: 768px) {
             .header { flex-direction: column; align-items: flex-start; }
-            .header-right { width: 100%; flex-wrap: wrap; }
-            .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
         }
+        @media (max-width: 480px) { .dashboard-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-left">
-                <h1>🏛️ Certificate Ecosystem</h1>
-                <p>Select a dashboard based on your role</p>
-            </div>
+            <h1>🏛️ Certificate Ecosystem</h1>
             <div class="header-right" id="headerRight">
-                <!-- User info and buttons will be loaded here -->
+                <span class="user-info" id="userDisplay">👤 Loading...</span>
+                <a href="admin_dashboard.html" class="btn btn-primary">⚙️ Admin</a>
+                <a href="monitoring_command_center.html" class="btn btn-purple">📊 Audit</a>
+                <a href="users_dashboard.html" class="btn btn-secondary">👥 Users</a>
+                <button class="btn btn-logout" onclick="logout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -172,7 +151,9 @@
             <div class="stat-box"><div class="number" id="totalStudents">0</div><div class="label">Students</div></div>
         </div>
 
-        <div class="dashboard-grid" id="dashboardGrid"></div>
+        <div class="dashboard-grid" id="dashboardGrid">
+            <!-- Dashboards will be loaded here -->
+        </div>
 
         <div class="footer">🎓 University Certificate Ecosystem · All Rights Reserved</div>
     </div>
@@ -195,44 +176,13 @@
             return user ? user.name || user.username : 'Guest';
         }
 
-        function getRoleBadgeClass(role) {
-            const map = {
-                'SYSTEM_ADMIN': 'role-admin',
-                'REGISTRAR': 'role-registrar',
-                'FINANCE_HEAD': 'role-finance',
-                'FINANCE_OFFICER': 'role-finance',
-                'ACADEMIC_HEAD': 'role-academic',
-                'ACADEMIC_OFFICER': 'role-academic',
-                'DEAN': 'role-dean',
-                'STUDENT': 'role-student'
-            };
-            return map[role] || 'role-other';
-        }
-
-        function getRoleDisplayName(role) {
-            const map = {
-                'SYSTEM_ADMIN': 'System Admin',
-                'REGISTRAR': 'Registrar',
-                'FINANCE_HEAD': 'Finance Head',
-                'FINANCE_OFFICER': 'Finance Officer',
-                'ACADEMIC_HEAD': 'Academic Head',
-                'ACADEMIC_OFFICER': 'Academic Officer',
-                'DEAN': 'Dean',
-                'STUDENT': 'Student'
-            };
-            return map[role] || role;
-        }
-
         function isSystemAdmin() {
-            const role = getUserRole();
-            return role === 'SYSTEM_ADMIN';
+            return getUserRole() === 'SYSTEM_ADMIN';
         }
 
-        // ===== CORRECT ROLE PERMISSIONS - EACH ROLE ONLY SEES THEIR DASHBOARD =====
-        // DEAN only sees Dean's Dashboard - NO Finance, NO Registry, NO Academic
+        // DASHBOARDS - Removed Academic and Certificate Verification
         const allDashboards = [
             {
-                id: 'finance',
                 icon: '💰',
                 name: 'Finance Dashboard',
                 description: 'Manage student fees, payments, and financial clearance',
@@ -242,7 +192,6 @@
                 badgeText: 'Finance'
             },
             {
-                id: 'registry',
                 icon: '📋',
                 name: 'Registry Dashboard',
                 description: 'Manage student records, registration, and academic tracking',
@@ -252,27 +201,15 @@
                 badgeText: 'Registry'
             },
             {
-                id: 'academic',
-                icon: '📚',
-                name: 'Academic Dashboard',
-                description: 'Academic performance, grades, and student progress tracking',
-                roles: ['SYSTEM_ADMIN', 'ACADEMIC_HEAD', 'ACADEMIC_OFFICER'],
-                url: 'academic_dashboard.html',
-                badge: 'badge-academic',
-                badgeText: 'Academic'
-            },
-            {
-                id: 'deans',
                 icon: '🏫',
-                name: 'Dean\'s Dashboard',
+                name: "Dean's Dashboard",
                 description: 'Department overview, faculty management, and performance analytics',
-                roles: ['SYSTEM_ADMIN', 'DEAN'],  // ONLY Dean and Admin can see this
+                roles: ['SYSTEM_ADMIN', 'DEAN'],
                 url: 'deans_dashboard.html',
                 badge: 'badge-dean',
                 badgeText: 'Dean'
             },
             {
-                id: 'student',
                 icon: '👨‍🎓',
                 name: 'Student Dashboard',
                 description: 'View your academic records, certificates, and clearance status',
@@ -282,34 +219,40 @@
                 badgeText: 'Student'
             },
             {
-                id: 'unified',
                 icon: '🏛️',
                 name: 'Unified Dashboard',
                 description: 'Central command center with all features',
-                roles: ['SYSTEM_ADMIN'],  // ONLY Admin
+                roles: ['SYSTEM_ADMIN'],
                 url: 'unified_dashboard.html',
-                badge: 'badge-all',
+                badge: 'badge-admin',
                 badgeText: 'Admin Only'
             },
             {
-                id: 'monitoring',
                 icon: '📊',
                 name: 'Monitoring & Audit',
                 description: 'Audit trail, user activity, and system monitoring',
-                roles: ['SYSTEM_ADMIN'],  // ONLY Admin
-                url: 'monitoring_dashboard.html',
-                badge: 'badge-all',
+                roles: ['SYSTEM_ADMIN'],
+                url: 'monitoring_command_center.html',
+                badge: 'badge-audit',
                 badgeText: 'Admin Only'
             },
             {
-                id: 'verify',
                 icon: '🔍',
                 name: 'Certificate Verification',
                 description: 'Public portal to verify certificate authenticity',
-                roles: ['*'],  // Everyone including public
+                roles: ['PUBLIC_VERIFIER', 'STUDENT'],  // Not visible to SYSTEM_ADMIN
                 url: 'verify_portal.html',
                 badge: 'badge-public',
                 badgeText: 'Public'
+            },
+            {
+                icon: '📁',
+                name: 'Department Inventory',
+                description: 'Track files across all departments',
+                roles: ['SYSTEM_ADMIN', 'REGISTRAR', 'FINANCE_HEAD', 'DEAN'],
+                url: 'department_inventory.html',
+                badge: 'badge-registry',
+                badgeText: 'Inventory'
             }
         ];
 
@@ -318,53 +261,17 @@
             return allowedRoles.includes(role);
         }
 
-        function renderHeader() {
-            const role = getUserRole();
-            const userName = getUserName();
-            const roleDisplay = getRoleDisplayName(role);
-            const badgeClass = getRoleBadgeClass(role);
-            const isAdmin = isSystemAdmin();
-
-            const headerRight = document.getElementById('headerRight');
-            
-            let html = `
-                <div class="user-info">
-                    👤 ${userName}
-                    <span class="role-badge ${badgeClass}">${roleDisplay}</span>
-                </div>
-            `;
-
-            // Admin, Audit, Users buttons - ONLY visible to SYSTEM_ADMIN
-            if (isAdmin) {
-                html += `
-                    <a href="admin_dashboard.html" class="nav-btn btn-admin">⚙️ Admin</a>
-                    <a href="monitoring_dashboard.html" class="nav-btn btn-audit">📊 Audit</a>
-                    <a href="users_dashboard.html" class="nav-btn btn-users">👥 Users</a>
-                `;
-            }
-
-            html += `
-                <button onclick="logout()" class="nav-btn btn-logout">🚪 Logout</button>
-            `;
-
-            headerRight.innerHTML = html;
-        }
-
         function renderDashboards() {
             const role = getUserRole();
             const grid = document.getElementById('dashboardGrid');
-
-            // Filter dashboards based on role
             const accessible = allDashboards.filter(d => hasAccess(role, d.roles));
-            const locked = allDashboards.filter(d => !hasAccess(role, d.roles));
 
             document.getElementById('totalDashboards').textContent = accessible.length;
             document.getElementById('totalUsers').textContent = '42';
             document.getElementById('totalCerts').textContent = '13';
             document.getElementById('totalStudents').textContent = '42';
 
-            // Only show accessible dashboards
-            let html = accessible.map(d => `
+            grid.innerHTML = accessible.map(d => `
                 <a href="${d.url}" class="dashboard-card">
                     <span class="icon">${d.icon}</span>
                     <div class="name">${d.name}</div>
@@ -372,8 +279,16 @@
                     <span class="badge ${d.badge}">${d.badgeText}</span>
                 </a>
             `).join('');
+        }
 
-            grid.innerHTML = html;
+        function updateUserDisplay() {
+            const user = getUser();
+            const role = getUserRole();
+            const name = getUserName();
+            document.getElementById('userDisplay').innerHTML = `
+                👤 ${name}
+                <span class="role-badge role-admin">${role}</span>
+            `;
         }
 
         function logout() {
@@ -384,37 +299,17 @@
             }
         }
 
-        function checkAuth() {
+        function init() {
             const token = localStorage.getItem('access_token');
             if (!token) {
                 window.location.href = 'login_with_rbac.html';
+                return;
             }
+            updateUserDisplay();
+            renderDashboards();
         }
 
-        checkAuth();
-        renderHeader();
-        renderDashboards();
+        init();
     </script>
 </body>
 </html>
-<script>
-// Add inventory to dashboard hub dashboards list
-const dashboardsWithInventory = [
-    // ... existing dashboards ...
-    {
-        icon: '📁',
-        name: 'Certificate Inventory',
-        description: 'Manage cabinet locations and certificate file tracking',
-        roles: ['SYSTEM_ADMIN', 'REGISTRAR', 'REGISTRY_HEAD', 'REGISTRY_OFFICER'],
-        url: 'certificate_inventory.html',
-        badge: 'badge-registry',
-        badgeText: 'Registry'
-    }
-];
-
-// Merge with existing dashboards
-function mergeDashboards() {
-    // This will be handled in the existing render function
-    console.log('Inventory dashboard added to hub');
-}
-</script>
