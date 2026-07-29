@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional, List
 import uuid
 import psycopg2
 import hashlib
@@ -22,7 +23,6 @@ app.add_middleware(
 SECRET_KEY = "your-super-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 print("Starting Authentication Service...", file=sys.stderr, flush=True)
 
@@ -57,56 +57,41 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def create_refresh_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+@app.get("/")
+async def root():
+    return {"message": "Authentication Service", "status": "running"}
 
-def verify_token(token: str) -> dict:
+@app.get("/health")
+async def health():
+    db_status = "unhealthy"
     try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        conn = get_db()
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT 1")
+            cur.close()
+            conn.close()
+            db_status = "healthy"
+    except Exception as e:
+        print(f"Health error: {e}", file=sys.stderr, flush=True)
+    
+    return {"status": "ok" if db_status == "healthy" else "degraded", "database": db_status}
 
 class LoginRequest(BaseModel):
     username: str
     password: str
 
-class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
-    first_name: str
-    last_name: str
-    role_name: str
-    department_code: Optional[str] = None
-
-@app.get("/")
-async def root():
-    return {"message": "Authentication Service", "status": "running"}
-
 @app.post("/auth/login")
 async def login(request: LoginRequest):
-    """Login and get access token"""
     conn = get_db()
     if not conn:
         raise HTTPException(status_code=503, detail="Database unavailable")
     
     cur = conn.cursor()
-    
-    # Get user with roles
     cur.execute("""
-        SELECT u.user_id, u.username, u.email, u.password_hash, u.first_name, u.last_name,
-               array_agg(r.name) as roles,
-               array_agg(r.department_code) as departments
+        SELECT u.user_id, u.username, u.password_hash, u.first_name, u.last_name
         FROM users u
-        LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.role_id
         WHERE u.username = %s AND u.is_active = TRUE
-        GROUP BY u.user_id
     """, (request.username,))
     
     result = cur.fetchone()
@@ -116,209 +101,26 @@ async def login(request: LoginRequest):
     if not result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    user_id, username, email, password_hash, first_name, last_name, roles, departments = result
+    user_id, username, password_hash, first_name, last_name = result
     
     if not verify_password(request.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Create tokens
     access_token = create_access_token({
-        "sub": username,
-        "user_id": str(user_id),
-        "roles": roles or []
-    })
-    
-    refresh_token = create_refresh_token({
         "sub": username,
         "user_id": str(user_id)
     })
     
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {
             "user_id": str(user_id),
             "username": username,
-            "email": email,
             "first_name": first_name,
-            "last_name": last_name,
-            "roles": roles or [],
-            "departments": [d for d in departments if d] or []
+            "last_name": last_name
         }
     }
-
-@app.post("/auth/register")
-async def register(user: UserCreate):
-    """Register a new user with role"""
-    conn = get_db()
-    if not conn:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    
-    cur = conn.cursor()
-    
-    # Check if user exists
-    cur.execute("SELECT user_id FROM users WHERE username = %s OR email = %s", (user.username, user.email))
-    if cur.fetchone():
-        cur.close()
-        conn.close()
-        raise HTTPException(status_code=400, detail="Username or email already exists")
-    
-    # Check if role exists
-    cur.execute("SELECT role_id FROM roles WHERE name = %s", (user.role_name,))
-    role_result = cur.fetchone()
-    if not role_result:
-        cur.close()
-        conn.close()
-        raise HTTPException(status_code=400, detail=f"Role '{user.role_name}' not found")
-    
-    role_id = role_result[0]
-    
-    # Create user
-    user_id = str(uuid.uuid4())
-    hashed_password = hash_password(user.password)
-    
-    cur.execute("""
-        INSERT INTO users (user_id, username, email, password_hash, first_name, last_name, is_active)
-        VALUES (%s, %s, %s, %s, %s, %s, TRUE)
-    """, (user_id, user.username, user.email, hashed_password, user.first_name, user.last_name))
-    
-    # Assign role
-    cur.execute("""
-        INSERT INTO user_roles (user_role_id, user_id, role_id, assigned_by)
-        VALUES (%s, %s, %s, %s)
-    """, (str(uuid.uuid4()), user_id, role_id, user_id))
-    
-    # If department code provided, add to department
-    if user.department_code:
-        cur.execute("""
-            INSERT INTO department_users (department_user_id, user_id, department_code, is_head)
-            VALUES (%s, %s, %s, %s)
-        """, (str(uuid.uuid4()), user_id, user.department_code, False))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    # Create tokens
-    access_token = create_access_token({
-        "sub": user.username,
-        "user_id": user_id,
-        "roles": [user.role_name]
-    })
-    
-    refresh_token = create_refresh_token({
-        "sub": user.username,
-        "user_id": user_id
-    })
-    
-    return {
-        "message": "User registered successfully",
-        "user_id": user_id,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
-
-@app.get("/auth/me")
-async def get_current_user(authorization: str = Header(...)):
-    """Get current user information"""
-    try:
-        token = authorization.replace("Bearer ", "")
-        payload = verify_token(token)
-        
-        conn = get_db()
-        if not conn:
-            raise HTTPException(status_code=503, detail="Database unavailable")
-        
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT u.user_id, u.username, u.email, u.first_name, u.last_name,
-                   array_agg(r.name) as roles,
-                   array_agg(r.department_code) as departments
-            FROM users u
-            LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-            LEFT JOIN roles r ON ur.role_id = r.role_id
-            WHERE u.user_id = %s AND u.is_active = TRUE
-            GROUP BY u.user_id
-        """, (payload.get("user_id"),))
-        
-        result = cur.fetchone()
-        cur.close()
-        conn.close()
-        
-        if not result:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        user_id, username, email, first_name, last_name, roles, departments = result
-        
-        return {
-            "user_id": str(user_id),
-            "username": username,
-            "email": email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "roles": roles or [],
-            "departments": [d for d in departments if d] or []
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-@app.post("/auth/refresh")
-async def refresh_token(refresh_token: str):
-    """Refresh access token"""
-    try:
-        payload = verify_token(refresh_token)
-        if payload.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid token type")
-        
-        new_access_token = create_access_token({
-            "sub": payload.get("sub"),
-            "user_id": payload.get("user_id")
-        })
-        
-        return {"access_token": new_access_token, "token_type": "bearer"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/auth/roles")
-async def get_roles():
-    """Get all available roles"""
-    conn = get_db()
-    if not conn:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT r.name, r.description, r.department_code,
-               array_agg(p.resource || ':' || p.action) as permissions
-        FROM roles r
-        LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
-        LEFT JOIN permissions p ON rp.permission_id = p.permission_id
-        GROUP BY r.name, r.description, r.department_code
-        ORDER BY r.name
-    """)
-    
-    results = cur.fetchall()
-    cur.close()
-    conn.close()
-    
-    roles = []
-    for name, description, department, permissions in results:
-        roles.append({
-            "name": name,
-            "description": description,
-            "department_code": department,
-            "permissions": permissions or []
-        })
-    
-    return {"roles": roles}
 
 if __name__ == "__main__":
     import uvicorn
