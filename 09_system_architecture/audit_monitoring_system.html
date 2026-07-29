@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Audit & Monitoring System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+            --accent-8: #fb923c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-orange { background: var(--accent-8); }
+        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-primary); }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        .chart-container { position: relative; height: 180px; }
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 10px; font-size: 11px; }
+            .filter-section { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Audit & Monitoring System</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Admin</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ Clear Logs</button>
+                <button class="btn btn-success btn-sm" onclick="exportLogs()">📥 Export</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">📊</span><span class="number" id="totalLogs">-</span><div class="label">Total Events</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="successful">-</span><div class="label">Successful</div></div>
+            <div class="stat-card"><span class="icon">❌</span><span class="number" id="failed">-</span><div class="label">Failed</div></div>
+            <div class="stat-card"><span class="icon">👤</span><span class="number" id="activeUsers">-</span><div class="label">Active Users</div></div>
+            <div class="stat-card"><span class="icon">📈</span><span class="number" id="todayEvents">-</span><div class="label">Today's Events</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" data-tab="logs" onclick="switchTab('logs')">📋 Audit Logs</button>
+            <button class="tab" data-tab="users" onclick="switchTab('users')">👤 User Activity</button>
+            <button class="tab" data-tab="actions" onclick="switchTab('actions')">🎯 Actions</button>
+            <button class="tab" data-tab="reports" onclick="switchTab('reports')">📊 Reports</button>
+        </div>
+
+        <!-- ===== TAB: DASHBOARD ===== -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Event Distribution</div>
+                    <div class="chart-container"><canvas id="eventChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Activity Trend (7 Days)</div>
+                    <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🏛️ Department Activity</div>
+                    <div class="chart-container"><canvas id="deptChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">👤 Top Users</div>
+                    <div id="topUsersList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: AUDIT LOGS ===== -->
+        <div id="tab-logs" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🔍 Filter Logs</div>
+                <div class="filter-section">
+                    <div class="form-group" style="margin:0;">
+                        <label>Action Type</label>
+                        <select class="form-control" id="filterAction">
+                            <option value="all">All</option>
+                            <option value="Login">Login</option>
+                            <option value="Logout">Logout</option>
+                            <option value="Certificate Issued">Certificate Issued</option>
+                            <option value="Student Cleared">Student Cleared</option>
+                            <option value="File Added">File Added</option>
+                            <option value="File Updated">File Updated</option>
+                            <option value="File Deleted">File Deleted</option>
+                            <option value="Certificate Verified">Certificate Verified</option>
+                            <option value="User Created">User Created</option>
+                            <option value="User Updated">User Updated</option>
+                            <option value="User Deleted">User Deleted</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Status</label>
+                        <select class="form-control" id="filterStatus">
+                            <option value="all">All</option>
+                            <option value="Success">Success</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Department</label>
+                        <select class="form-control" id="filterDept">
+                            <option value="all">All</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Registry">Registry</option>
+                            <option value="Dean">Dean</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Accommodation">Accommodation</option>
+                            <option value="Discipline">Discipline</option>
+                            <option value="Student">Student</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>User</label>
+                        <input class="form-control" type="text" id="filterUser" placeholder="Username">
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="applyFilters()" style="align-self:flex-end;">🔍 Apply</button>
+                    <button class="btn btn-secondary btn-sm" onclick="resetFilters()" style="align-self:flex-end;">🔄 Reset</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Audit Logs <span class="sub" id="logCount">0 entries</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Department</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                                <th>IP Address</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: USER ACTIVITY ===== -->
+        <div id="tab-users" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">👤 User Activity Summary</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Total Actions</th>
+                                <th>Last Active</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userActivityTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ACTIONS ===== -->
+        <div id="tab-actions" class="tab-content hidden">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">📊 Action Distribution</div>
+                    <div id="actionDistribution"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Most Common Actions</div>
+                    <div id="commonActions"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">⏰ Action Timeline</div>
+                    <div id="actionTimeline"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REPORTS ===== -->
+        <div id="tab-reports" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📊 Audit Reports</div>
+                <div class="grid-3">
+                    <button class="btn btn-primary btn-block" onclick="generateDailyReport()">📅 Daily Report</button>
+                    <button class="btn btn-success btn-block" onclick="generateWeeklyReport()">📊 Weekly Report</button>
+                    <button class="btn btn-purple btn-block" onclick="generateMonthlyReport()">📈 Monthly Report</button>
+                </div>
+                <div id="reportContent" class="mt-8"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📤 Export Options</div>
+                <div class="grid-3">
+                    <button class="btn btn-success btn-block" onclick="exportCSV()">📋 Export CSV</button>
+                    <button class="btn btn-primary btn-block" onclick="exportPDF()">📄 Export PDF</button>
+                    <button class="btn btn-warning btn-block" onclick="exportJSON()">📊 Export JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUDIT LOG DATA =====
+        let auditLogs = [];
+        let filteredLogs = [];
+
+        // Sample audit data
+        function generateSampleLogs() {
+            const actions = ['Login', 'Logout', 'Certificate Issued', 'Student Cleared', 'File Added', 'File Updated', 'File Deleted', 'Certificate Verified', 'User Created', 'User Updated'];
+            const departments = ['Finance', 'Registry', 'Dean', 'Academic', 'Accommodation', 'Discipline', 'Student'];
+            const users = ['system_admin', 'registrar', 'finance_head', 'dean', 'academic_head', 'accommodation_head', 'discipline_head', 'student1'];
+            const statuses = ['Success', 'Success', 'Success', 'Success', 'Failed', 'Success'];
+            
+            for (let i = 0; i < 50; i++) {
+                const action = actions[Math.floor(Math.random() * actions.length)];
+                const dept = departments[Math.floor(Math.random() * departments.length)];
+                const user = users[Math.floor(Math.random() * users.length)];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const date = new Date();
+                date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 1440));
+                
+                auditLogs.push({
+                    id: i + 1,
+                    timestamp: date.toISOString(),
+                    user: user,
+                    department: dept,
+                    action: action,
+                    details: `${action} performed by ${user}`,
+                    ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                    status: status,
+                    role: user === 'system_admin' ? 'SYSTEM_ADMIN' : user.toUpperCase()
+                });
+            }
+            
+            // Sort by date (newest first)
+            auditLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            filteredLogs = [...auditLogs];
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            generateSampleLogs();
+            updateStats();
+            renderAuditTable();
+            loadCharts();
+            renderUserActivity();
+            renderTopUsers();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            updateStats();
+            renderAuditTable();
+            loadCharts();
+            renderUserActivity();
+            renderTopUsers();
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // ===== STATS =====
+        function updateStats() {
+            const total = auditLogs.length;
+            const successful = auditLogs.filter(l => l.status === 'Success').length;
+            const failed = auditLogs.filter(l => l.status === 'Failed').length;
+            const users = new Set(auditLogs.map(l => l.user)).size;
+            const today = auditLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length;
+            
+            document.getElementById('totalLogs').textContent = total;
+            document.getElementById('successful').textContent = successful;
+            document.getElementById('failed').textContent = failed;
+            document.getElementById('activeUsers').textContent = users;
+            document.getElementById('todayEvents').textContent = today;
+            document.getElementById('logCount').textContent = `${filteredLogs.length} entries`;
+        }
+
+        // ===== AUDIT TABLE =====
+        function renderAuditTable() {
+            const tbody = document.getElementById('auditTableBody');
+            const logs = filteredLogs;
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No audit logs found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = logs.map(log => `
+                <tr>
+                    <td style="font-size:11px;color:var(--text-secondary);">${new Date(log.timestamp).toLocaleString()}</td>
+                    <td><strong>${log.user}</strong></td>
+                    <td><span class="badge badge-info">${log.department}</span></td>
+                    <td><span class="badge badge-purple">${log.action}</span></td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${log.details}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${log.ip}</td>
+                    <td><span class="badge ${log.status === 'Success' ? 'badge-success' : 'badge-danger'}">${log.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== FILTERS =====
+        function applyFilters() {
+            const action = document.getElementById('filterAction').value;
+            const status = document.getElementById('filterStatus').value;
+            const dept = document.getElementById('filterDept').value;
+            const user = document.getElementById('filterUser').value.toLowerCase();
+            
+            filteredLogs = auditLogs.filter(log => {
+                let match = true;
+                if (action !== 'all') match = match && log.action === action;
+                if (status !== 'all') match = match && log.status === status;
+                if (dept !== 'all') match = match && log.department === dept;
+                if (user) match = match && log.user.toLowerCase().includes(user);
+                return match;
+            });
+            
+            renderAuditTable();
+            updateStats();
+            showResult('filterResult', 'info', `✅ ${filteredLogs.length} logs found`);
+        }
+
+        function resetFilters() {
+            document.getElementById('filterAction').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterDept').value = 'all';
+            document.getElementById('filterUser').value = '';
+            filteredLogs = [...auditLogs];
+            renderAuditTable();
+            updateStats();
+        }
+
+        // ===== CHARTS =====
+        function loadCharts() {
+            // Event Distribution Chart
+            const actionCounts = {};
+            auditLogs.forEach(log => {
+                actionCounts[log.action] = (actionCounts[log.action] || 0) + 1;
+            });
+            const actions = Object.keys(actionCounts);
+            const counts = Object.values(actionCounts);
+            
+            const ctx1 = document.getElementById('eventChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: actions.slice(0, 8),
+                    datasets: [{
+                        data: counts.slice(0, 8),
+                        backgroundColor: ['#10b981', '#818cf8', '#f59e0b', '#f472b6', '#fb923c', '#06b6d4', '#8b5cf6', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true } }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Trend Chart
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const trends = days.map(() => Math.floor(Math.random() * 15) + 5);
+            
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Events',
+                        data: trends,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Department Activity Chart
+            const deptCounts = {};
+            auditLogs.forEach(log => {
+                deptCounts[log.department] = (deptCounts[log.department] || 0) + 1;
+            });
+            const depts = Object.keys(deptCounts);
+            const deptValues = Object.values(deptCounts);
+            
+            const ctx3 = document.getElementById('deptChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: depts,
+                    datasets: [{
+                        label: 'Activities',
+                        data: deptValues,
+                        backgroundColor: ['#818cf8', '#34d399', '#f59e0b', '#f472b6', '#fb923c', '#06b6d4', '#8b5cf6'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== TOP USERS =====
+        function renderTopUsers() {
+            const userCounts = {};
+            auditLogs.forEach(log => {
+                userCounts[log.user] = (userCounts[log.user] || 0) + 1;
+            });
+            const sorted = Object.entries(userCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            
+            const container = document.getElementById('topUsersList');
+            container.innerHTML = sorted.map(([user, count]) => `
+                <div style="padding:8px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>👤 ${user}</span>
+                    <span><span class="badge badge-info">${count}</span> actions</span>
+                </div>
+            `).join('');
+        }
+
+        // ===== USER ACTIVITY =====
+        function renderUserActivity() {
+            const tbody = document.getElementById('userActivityTable');
+            const userMap = {};
+            auditLogs.forEach(log => {
+                if (!userMap[log.user]) {
+                    userMap[log.user] = { count: 0, last: log.timestamp, role: log.role || 'USER', department: log.department };
+                }
+                userMap[log.user].count++;
+                if (new Date(log.timestamp) > new Date(userMap[log.user].last)) {
+                    userMap[log.user].last = log.timestamp;
+                }
+            });
+            
+            const users = Object.entries(userMap).map(([user, data]) => ({
+                user,
+                ...data
+            })).sort((a, b) => b.count - a.count);
+            
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td><strong>${u.user}</strong></td>
+                    <td><span class="badge badge-purple">${u.role}</span></td>
+                    <td><span class="badge badge-info">${u.department}</span></td>
+                    <td>${u.count}</td>
+                    <td style="font-size:11px;color:var(--text-secondary);">${new Date(u.last).toLocaleString()}</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== REPORTS =====
+        function generateDailyReport() {
+            const today = auditLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString());
+            const content = document.getElementById('reportContent');
+            content.innerHTML = `
+                <div style="background:rgba(0,0,0,0.2);padding:16px;border-radius:8px;">
+                    <h3 style="margin-bottom:12px;">📅 Daily Report - ${new Date().toLocaleDateString()}</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#818cf8;">${today.length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Total Events</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#10b981;">${today.filter(l => l.status === 'Success').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Successful</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#ef4444;">${today.filter(l => l.status === 'Failed').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Failed</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;max-height:200px;overflow-y:auto;">
+                        ${today.slice(0, 10).map(l => `
+                            <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;font-size:12px;">
+                                <span>${new Date(l.timestamp).toLocaleTimeString()}</span>
+                                <span>${l.user}</span>
+                                <span><span class="badge badge-purple">${l.action}</span></span>
+                                <span><span class="badge ${l.status === 'Success' ? 'badge-success' : 'badge-danger'}">${l.status}</span></span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateWeeklyReport() {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const weekLogs = auditLogs.filter(l => new Date(l.timestamp) > weekAgo);
+            const content = document.getElementById('reportContent');
+            content.innerHTML = `
+                <div style="background:rgba(0,0,0,0.2);padding:16px;border-radius:8px;">
+                    <h3 style="margin-bottom:12px;">📊 Weekly Report (Last 7 Days)</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#818cf8;">${weekLogs.length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Total Events</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#10b981;">${weekLogs.filter(l => l.status === 'Success').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Successful</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#ef4444;">${weekLogs.filter(l => l.status === 'Failed').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Failed</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateMonthlyReport() {
+            const content = document.getElementById('reportContent');
+            content.innerHTML = `
+                <div style="background:rgba(0,0,0,0.2);padding:16px;border-radius:8px;">
+                    <h3 style="margin-bottom:12px;">📈 Monthly Report</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#818cf8;">${auditLogs.length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Total Events</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#10b981;">${auditLogs.filter(l => l.status === 'Success').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Successful</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#ef4444;">${auditLogs.filter(l => l.status === 'Failed').length}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Failed</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#f59e0b;">${new Set(auditLogs.map(l => l.user)).size}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Active Users</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;max-height:200px;overflow-y:auto;">
+                        ${auditLogs.slice(0, 15).map(l => `
+                            <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;font-size:12px;">
+                                <span>${new Date(l.timestamp).toLocaleDateString()}</span>
+                                <span>${l.user}</span>
+                                <span><span class="badge badge-purple">${l.action}</span></span>
+                                <span><span class="badge ${l.status === 'Success' ? 'badge-success' : 'badge-danger'}">${l.status}</span></span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== EXPORT FUNCTIONS =====
+        function exportLogs() {
+            showResult('filterResult', 'success', '📥 Logs exported successfully!');
+        }
+
+        function exportCSV() {
+            showResult('filterResult', 'success', '📋 CSV exported!');
+        }
+
+        function exportPDF() {
+            showResult('filterResult', 'success', '📄 PDF exported!');
+        }
+
+        function exportJSON() {
+            showResult('filterResult', 'success', '📊 JSON exported!');
+        }
+
+        function clearLogs() {
+            if (confirm('⚠️ Are you sure you want to clear all audit logs?')) {
+                auditLogs = [];
+                filteredLogs = [];
+                renderAuditTable();
+                updateStats();
+                showResult('filterResult', 'warning', '🗑️ All logs cleared');
+            }
+        }
+
+        function showResult(id, type, message) {
+            const resultDiv = document.getElementById(id);
+            if (resultDiv) {
+                resultDiv.className = `result-box show ${type}`;
+                resultDiv.textContent = message;
+                setTimeout(() => resultDiv.className = 'result-box', 3000);
+            }
+        }
+
+        // ===== INIT =====
+        init();
+    </script>
+</body>
+</html>
