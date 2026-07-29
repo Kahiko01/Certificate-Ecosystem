@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-badge {
+            background: rgba(30,41,59,0.85);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+            background: rgba(239,68,68,0.25);
+            transform: translateY(-2px);
+        }
+        .content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: rgba(30,41,59,0.85);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99,102,241,0.3);
+        }
+        .card .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+        .card .title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .card .desc { color: #94a3b8; font-size: 14px; }
+        .footer {
+            text-align: center;
+            color: #475569;
+            font-size: 14px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+    </style>
+</head>
+<body>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:rgba(15,23,42,0.8);border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:20px;">
+        <div style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#e0e7ff,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏛️ Certificate Ecosystem</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span id="userBadge" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+            <button onclick="logout()" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-family:Inter,sans-serif;font-size:13px;">🚪 Logout</button>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Header with Logout -->
+        <div class="header">
+            <h1>🏛️ Certificate Ecosystem</h1>
+            <div class="header-right">
+                <span class="user-badge" id="userBadge">👤 Loading...</span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="card">
+                <span class="icon">📊</span>
+                <div class="title">Dashboard</div>
+            </div>
+            <div class="card">
+                <span class="icon">📜</span>
+                <div class="title">Certificates</div>
+                <div class="desc">Manage your certificates</div>
+            </div>
+            <div class="card">
+                <span class="icon">👤</span>
+                <div class="title">Profile</div>
+                <div class="desc">View and edit your profile</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            🎓 University Certificate Ecosystem · All Rights Reserved
+        </div>
+    </div>
+
+    <script>
+        // Get user from localStorage
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        // Update user badge
+        function updateUserBadge() {
+            const user = getUser();
+            const badge = document.getElementById('userBadge');
+            if (user) {
+                badge.textContent = `👤 ${user.name || user.username}`;
+            } else {
+                badge.textContent = '👤 Guest';
+            }
+        }
+
+        // Logout function
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+            }
+        }
+
+        // Initialize
+        updateUserBadge();
+    </script>
+</body>
+</html>
+<script>
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        window.location.href = 'login_with_rbac.html';
+    }
+}
+function updateUserBadge() {
+    try {
+        const data = localStorage.getItem('user');
+        if (data) {
+            const user = JSON.parse(data);
+            document.getElementById('userBadge').textContent = `👤 ${user.name || user.username}`;
+        }
+    } catch {}
+}
+document.addEventListener('DOMContentLoaded', updateUserBadge);
+</script>

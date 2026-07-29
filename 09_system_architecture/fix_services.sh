@@ -1,12 +1,18 @@
 #!/bin/bash
 
-echo "Fixing services..."
+echo "========================================="
+echo "🔧 Fixing Services"
+echo "========================================="
 
-# Stop all
-sudo docker stop auth-service telemetry-service certificate-service 2>/dev/null
-sudo docker rm auth-service telemetry-service certificate-service 2>/dev/null
+cd /home/Cybergoat/university-certificate-ecosystem/09_system_architecture
+
+# Stop all services
+echo "Stopping services..."
+sudo docker stop certificate-service auth-service 2>/dev/null
+sudo docker rm certificate-service auth-service 2>/dev/null
 
 # Start certificate service
+echo "Starting certificate service on port 8000..."
 sudo docker run -d \
   --name certificate-service \
   --network certificate-network \
@@ -14,29 +20,30 @@ sudo docker run -d \
   -v $(pwd)/simple_service.py:/app/simple_service.py \
   -w /app \
   python:3.11-slim \
-  sh -c "pip install -q fastapi uvicorn psycopg2-binary && python simple_service.py"
+  sh -c "pip install -q fastapi uvicorn psycopg2-binary && python -u simple_service.py"
 
 # Start auth service
+echo "Starting auth service on port 8001..."
 sudo docker run -d \
   --name auth-service \
   --network certificate-network \
   -p 8001:8001 \
-  -v $(pwd)/auth_service_simple.py:/app/auth_service.py \
+  -v $(pwd)/simple_service_with_auth.py:/app/simple_service_with_auth.py \
   -w /app \
   python:3.11-slim \
-  sh -c "pip install -q fastapi uvicorn psycopg2-binary pyjwt && python auth_service.py"
+  sh -c "pip install -q fastapi uvicorn && python -u simple_service_with_auth.py"
 
-# Start telemetry service
-sudo docker run -d \
-  --name telemetry-service \
-  --network certificate-network \
-  -p 8002:8002 \
-  -v $(pwd)/telemetry_service.py:/app/telemetry_service.py \
-  -w /app \
-  python:3.11-slim \
-  sh -c "pip install -q fastapi uvicorn psycopg2-binary && python telemetry_service.py"
+# Wait for services to start
+echo "Waiting for services to start..."
+sleep 15
 
-sleep 10
+# Test services
+echo -e "\n🔍 Testing Services:"
+echo -n "Certificate Service (8000): "
+curl -s http://localhost:8000/health > /dev/null && echo "✅ Online" || echo "❌ Offline"
 
-echo "Services restarted!"
-sudo docker ps --format "table {{.Names}}\t{{.Status}}"
+echo -n "Auth Service (8001): "
+curl -s http://localhost:8001/health > /dev/null && echo "✅ Online" || echo "❌ Offline"
+
+echo -e "\n📋 Running Containers:"
+sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .text { color: #94a3b8; font-size: 16px; }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+        .badge-admin { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .badge-registrar { background: rgba(6,182,212,0.2); color: #22d3ee; }
+        .badge-finance { background: rgba(16,185,129,0.2); color: #34d399; }
+        .badge-academic { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .badge-dean { background: rgba(251,146,60,0.2); color: #fb923c; }
+        .badge-student { background: rgba(148,163,184,0.2); color: #94a3b8; }
+        .badge-other { background: rgba(148,163,184,0.2); color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <div class="text">Redirecting to your department dashboard...</div>
+    <div id="roleDisplay"></div>
+
+    <script>
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function getRoleDisplayName(role) {
+            const map = {
+                'SYSTEM_ADMIN': 'System Administrator',
+                'REGISTRAR': 'Registrar',
+                'FINANCE_HEAD': 'Finance Head',
+                'FINANCE_OFFICER': 'Finance Officer',
+                'ACADEMIC_HEAD': 'Academic Head',
+                'ACADEMIC_OFFICER': 'Academic Officer',
+                'DEAN': 'Dean',
+                'STUDENT': 'Student'
+            };
+            return map[role] || role;
+        }
+
+        function getRoleBadgeClass(role) {
+            const map = {
+                'SYSTEM_ADMIN': 'badge-admin',
+                'REGISTRAR': 'badge-registrar',
+                'FINANCE_HEAD': 'badge-finance',
+                'FINANCE_OFFICER': 'badge-finance',
+                'ACADEMIC_HEAD': 'badge-academic',
+                'ACADEMIC_OFFICER': 'badge-academic',
+                'DEAN': 'badge-dean',
+                'STUDENT': 'badge-student'
+            };
+            return map[role] || 'badge-other';
+        }
+
+        function redirectToDashboard() {
+            const user = getUser();
+            if (!user) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+
+            const role = user.role;
+            const roleDisplay = getRoleDisplayName(role);
+            const badgeClass = getRoleBadgeClass(role);
+
+            document.getElementById('roleDisplay').innerHTML = `
+                <span class="role-badge ${badgeClass}">${roleDisplay}</span>
+            `;
+
+            // Role to dashboard mapping - each role goes to their specific dashboard
+            const roleMap = {
+                'SYSTEM_ADMIN': 'unified_dashboard.html',
+                'REGISTRAR': 'registry_dashboard.html',
+                'FINANCE_HEAD': 'finance_dashboard.html',
+                'FINANCE_OFFICER': 'finance_dashboard.html',
+                'ACADEMIC_HEAD': 'academic_dashboard.html',
+                'ACADEMIC_OFFICER': 'academic_dashboard.html',
+                'DEAN': 'deans_dashboard.html',
+                'STUDENT': 'student_dashboard.html'
+            };
+
+            const dashboard = roleMap[role] || 'dashboard_hub.html';
+            
+            setTimeout(() => {
+                window.location.href = dashboard;
+            }, 1500);
+        }
+
+        redirectToDashboard();
+    </script>
+</body>
+</html>

@@ -66,3 +66,35 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+
+  pdf-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.pdf
+    container_name: pdf-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://cert_admin:secure_password_123@postgres:5432/certificate_ecosystem
+    depends_on:
+      - postgres
+    networks:
+      - certificate-network
+
+  email-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.email
+    container_name: email-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://cert_admin:secure_password_123@postgres:5432/certificate_ecosystem
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+    depends_on:
+      - postgres
+    networks:
+      - certificate-network

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👥 Users Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .nav-btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-weight: 600; font-family: 'Inter', sans-serif; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            text-decoration: none;
+        }
+        .nav-btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+        .btn-primary:hover { background: rgba(99,102,241,0.25); }
+        .btn-logout { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .btn-logout:hover { background: rgba(239,68,68,0.25); }
+        .user-badge {
+            background: rgba(30,41,59,0.85);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; padding: 12px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-admin { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .badge-active { background: rgba(16,185,129,0.2); color: #10b981; }
+        .badge-inactive { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .footer { text-align: center; color: #475569; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.04); }
+        .btn-action {
+            padding: 4px 12px; border: none; border-radius: 6px;
+            font-weight: 600; cursor: pointer; font-size: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-edit { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .btn-edit:hover { background: rgba(245,158,11,0.3); }
+        .btn-delete { background: rgba(239,68,68,0.2); color: #f87171; }
+        .btn-delete:hover { background: rgba(239,68,68,0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Users Management</h1>
+            <div class="header-right">
+                <span class="user-badge" id="userBadge">👤 Admin</span>
+                <a href="dashboard_hub.html" class="nav-btn btn-primary">🏛️ Hub</a>
+                <button onclick="logout()" class="nav-btn btn-logout">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>system_admin</td>
+                        <td>System Admin</td>
+                        <td>admin@university.ac.ke</td>
+                        <td><span class="badge badge-admin">SYSTEM_ADMIN</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>registrar</td>
+                        <td>University Registrar</td>
+                        <td>registrar@university.ac.ke</td>
+                        <td><span class="badge badge-admin">REGISTRAR</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>finance_head</td>
+                        <td>Finance Head</td>
+                        <td>finance@university.ac.ke</td>
+                        <td><span class="badge badge-admin">FINANCE_HEAD</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>academic_head</td>
+                        <td>Academic Head</td>
+                        <td>academic@university.ac.ke</td>
+                        <td><span class="badge badge-admin">ACADEMIC_HEAD</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>dean</td>
+                        <td>Dean of Students</td>
+                        <td>dean@university.ac.ke</td>
+                        <td><span class="badge badge-admin">DEAN</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>student1</td>
+                        <td>Test Student</td>
+                        <td>student@university.ac.ke</td>
+                        <td><span class="badge badge-admin">STUDENT</span></td>
+                        <td><span class="badge badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-action btn-edit">✏️ Edit</button>
+                            <button class="btn-action btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">👥 Users Management · Admin Only</div>
+    </div>
+
+    <script>
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function updateUserBadge() {
+            const user = getUser();
+            const badge = document.getElementById('userBadge');
+            if (user) {
+                badge.textContent = `👤 ${user.name || user.username}`;
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        // Check if user is admin
+        function checkAdmin() {
+            const user = getUser();
+            if (!user || user.role !== 'SYSTEM_ADMIN') {
+                window.location.href = 'dashboard_hub.html';
+            }
+        }
+
+        checkAdmin();
+        updateUserBadge();
+    </script>
+</body>
+</html>

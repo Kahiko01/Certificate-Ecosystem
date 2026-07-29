@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Unified Certificate Ecosystem</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-online { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
+        .btn-block { width: 100%; justify-content: center; }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        
+        .clearance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .clearance-item {
+            padding: 8px 12px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.15); font-size: 12px;
+        }
+        .clearance-item.cleared { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.05); }
+        .clearance-item.not-cleared { border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.05); }
+        .clearance-item .dept-name { font-weight: 600; }
+        .clearance-item.cleared .dept-status { color: #10b981; font-weight: 600; }
+        .clearance-item.not-cleared .dept-status { color: #ef4444; font-weight: 600; }
+        
+        .online-user {
+            display: flex; align-items: center; gap: 6px; padding: 4px 8px;
+            background: rgba(16,185,129,0.05); border-radius: 4px; margin: 2px 0; font-size: 12px;
+        }
+        .online-user .dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+        
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+        
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        
+        .verification-code {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--accent-1); background: rgba(99,102,241,0.1);
+            padding: 2px 10px; border-radius: 4px;
+        }
+        .chart-container { position: relative; height: 180px; }
+        
+        .logout-btn {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+        .quick-link:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .clearance-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 10px; font-size: 11px; }
+            .quick-links { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏛️ Unified Certificate Ecosystem</h1>
+            <div class="header-right" id="headerRight">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span id="statusBadge" class="badge badge-online">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="totalCerts">-</span><div class="label">Certificates</div></div>
+            <div class="stat-card"><span class="icon">👨‍🎓</span><span class="number" id="totalStudents">-</span><div class="label">Students</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="issuedCerts">-</span><div class="label">Issued</div></div>
+            <div class="stat-card"><span class="icon">🔓</span><span class="number" id="clearedStudents">-</span><div class="label">Cleared</div></div>
+            <div class="stat-card"><span class="icon">👤</span><span class="number" id="onlineUsers">-</span><div class="label">Online</div></div>
+            <div class="stat-card"><span class="icon">📊</span><span class="number" id="todayLogins">-</span><div class="label">Today's Logins</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar" id="tabBar">
+            <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" data-tab="clearance" onclick="switchTab('clearance')">🔍 Clearance</button>
+            <button class="tab" data-tab="certificates" onclick="switchTab('certificates')">📜 Certificates</button>
+            <button class="tab" data-tab="registry" onclick="switchTab('registry')">📋 Registry</button>
+            <button class="tab users-tab" data-tab="users" onclick="switchTab('users')" style="display:none;">👥 Users</button>
+            <button class="tab audit-tab" data-tab="audit" onclick="switchTab('audit')" style="display:none;">📋 Audit</button>
+            <button class="tab admin-tab" data-tab="admin" onclick="switchTab('admin')" style="display:none;">⚙️ Admin</button>
+        </div>
+
+        <!-- ===== TAB: DASHBOARD ===== -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Certificate Status</div>
+                    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Weekly Activity</div>
+                    <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🟢 Online Users <span class="sub" id="onlineCount">0</span></div>
+                    <div id="onlineUsersList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📋 Recent Activity</div>
+                    <div id="recentActivity"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CLEARANCE ===== -->
+        <div id="tab-clearance" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🔍 Student Clearance</div>
+                <div id="clearanceContent">Clearance features here</div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CERTIFICATES ===== -->
+        <div id="tab-certificates" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📜 Certificates</div>
+                <div id="certificateContent">Certificate features here</div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REGISTRY ===== -->
+        <div id="tab-registry" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📋 Registry Management</div>
+                <div style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                    <p style="color: #94a3b8; margin-bottom: 16px;">
+                        The Registry Dashboard provides comprehensive student and certificate management.
+                        Click below to access the full Registry Dashboard.
+                    </p>
+                    <div class="quick-links">
+                        <a href="registry_dashboard.html" class="quick-link" target="_blank">
+                            📋 Open Registry Dashboard
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                        <a href="registry_dashboard.html#students" class="quick-link" target="_blank">
+                            👨‍🎓 Student Management
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                        <a href="registry_dashboard.html#graduation" class="quick-link" target="_blank">
+                            🎓 Graduation Management
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                        <a href="registry_dashboard.html#certificates" class="quick-link" target="_blank">
+                            📜 Certificate Generation
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                        <a href="registry_dashboard.html#numbers" class="quick-link" target="_blank">
+                            🔢 Certificate Numbers
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                        <a href="registry_dashboard.html#signing" class="quick-link" target="_blank">
+                            ✍️ Digital Signing
+                            <span style="margin-left: auto; color: #818cf8;">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Registry Statistics</div>
+                <div class="grid-3">
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#a78bfa;" id="regStudents">0</div>
+                        <div class="text-muted">Students</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#a78bfa;" id="regGraduating">0</div>
+                        <div class="text-muted">Graduating</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#a78bfa;" id="regCertificates">0</div>
+                        <div class="text-muted">Certificates</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: USERS ===== -->
+        <div id="tab-users" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">👥 User Management</div>
+                <div id="usersContent">User management features here</div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: AUDIT ===== -->
+        <div id="tab-audit" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📋 Audit Logs</div>
+                <div id="auditContent">Audit log features here</div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ADMIN ===== -->
+        <div id="tab-admin" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">⚙️ Admin Settings</div>
+                <div id="adminContent">Admin features here</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIG =====
+        let API = 'http://127.0.0.1:8000';
+        let statusChart = null, trendChart = null;
+
+        // ===== GET USER =====
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function getUserRole() {
+            const user = getUser();
+            return user ? user.role : 'PUBLIC_VERIFIER';
+        }
+
+        function getUserName() {
+            const user = getUser();
+            return user ? user.name || user.username : 'Guest';
+        }
+
+        function isSystemAdmin() {
+            return getUserRole() === 'SYSTEM_ADMIN';
+        }
+
+        // ===== UPDATE HEADER =====
+        function updateHeader() {
+            const user = getUser();
+            const role = getUserRole();
+            const name = getUserName();
+            document.getElementById('userDisplay').textContent = `👤 ${name} · ${role}`;
+        }
+
+        // ===== SHOW/HIDE TABS BASED ON ROLE =====
+        function updateTabVisibility() {
+            const isAdmin = isSystemAdmin();
+
+            // Registry tab - visible to all logged-in users
+            document.querySelector('.tab[data-tab="registry"]').style.display = 'inline-block';
+
+            // Users - ONLY for SYSTEM_ADMIN
+            const usersTab = document.querySelector('.users-tab');
+            if (usersTab) usersTab.style.display = isAdmin ? 'inline-block' : 'none';
+
+            // Audit - ONLY for SYSTEM_ADMIN
+            const auditTab = document.querySelector('.audit-tab');
+            if (auditTab) auditTab.style.display = isAdmin ? 'inline-block' : 'none';
+
+            // Admin - ONLY for SYSTEM_ADMIN
+            const adminTab = document.querySelector('.admin-tab');
+            if (adminTab) adminTab.style.display = isAdmin ? 'inline-block' : 'none';
+        }
+
+        // ===== TAB SWITCHING =====
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // ===== LOGOUT =====
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        // ===== LOAD REGISTRY STATS =====
+        function loadRegistryStats() {
+            // Simulate registry stats
+            document.getElementById('regStudents').textContent = '42';
+            document.getElementById('regGraduating').textContent = '18';
+            document.getElementById('regCertificates').textContent = '98';
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            updateHeader();
+            updateTabVisibility();
+            loadRegistryStats();
+            refreshAll();
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            // Update stats with sample data
+            document.getElementById('totalCerts').textContent = '98';
+            document.getElementById('totalStudents').textContent = '42';
+            document.getElementById('issuedCerts').textContent = '76';
+            document.getElementById('clearedStudents').textContent = '35';
+            document.getElementById('onlineUsers').textContent = '3';
+            document.getElementById('todayLogins').textContent = '12';
+            document.getElementById('onlineCount').textContent = '3 active';
+            
+            // Sample online users
+            document.getElementById('onlineUsersList').innerHTML = `
+                <div class="online-user"><span class="dot"></span><strong>System Admin</strong> <span class="text-muted">· Admin</span></div>
+                <div class="online-user"><span class="dot"></span><strong>Registrar</strong> <span class="text-muted">· Registry</span></div>
+                <div class="online-user"><span class="dot"></span><strong>Finance Head</strong> <span class="text-muted">· Finance</span></div>
+            `;
+            
+            // Sample recent activity
+            document.getElementById('recentActivity').innerHTML = `
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;font-size:12px;">
+                    <span>📜 Certificate issued to John Doe</span>
+                    <span class="text-muted">2 min ago</span>
+                </div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;font-size:12px;">
+                    <span>✅ Student Jane Smith cleared</span>
+                    <span class="text-muted">15 min ago</span>
+                </div>
+                <div style="padding:4px 0;display:flex;justify-content:space-between;font-size:12px;">
+                    <span>🎓 Graduation list published</span>
+                    <span class="text-muted">1 hour ago</span>
+                </div>
+            `;
+            
+            // Load charts
+            loadCharts();
+        }
+
+        // ===== LOAD CHARTS =====
+        function loadCharts() {
+            // Status Chart
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
+            statusChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Issued', 'Pending', 'Revoked'],
+                    datasets: [{
+                        data: [76, 18, 4],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true } } },
+                    cutout: '65%'
+                }
+            });
+
+            // Trend Chart
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Certificates',
+                        data: [8, 12, 15, 10, 18, 6, 7],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Run on load
+        init();
+    </script>
+</body>
+</html>

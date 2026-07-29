@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📄 Certificate Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .certificate-frame {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            min-height: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .certificate-frame iframe {
+            width: 100%;
+            height: 700px;
+            border: none;
+            border-radius: 8px;
+        }
+        .actions {
+            display: flex; gap: 12px; margin-top: 20px; justify-content: center;
+        }
+        .btn {
+            padding: 12px 30px; border: none; border-radius: 10px;
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: all 0.3s; font-family: 'Inter', sans-serif;
+        }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16,185,129,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .footer { text-align: center; color: #475569; font-size: 14px; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.04); }
+        .empty-state { text-align: center; padding: 60px; color: #94a3b8; }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Certificate Preview</h1>
+            <div class="header-right">
+                <span style="color:#94a3b8;font-size:13px;" id="userDisplay">👤 Registrar</span>
+                <button class="btn btn-secondary btn-sm" onclick="window.history.back()">⬅️ Back</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div class="certificate-frame" id="certificateFrame">
+            <div class="empty-state">
+                <span class="icon">📄</span>
+                <h2>No Certificate Selected</h2>
+                <p>Generate a certificate from the Registry Dashboard to preview it here.</p>
+                <a href="registry_dashboard.html" class="btn btn-primary" style="display:inline-block;margin-top:16px;">📋 Go to Registry</a>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="window.location.href='registry_dashboard.html'">📋 Registry Dashboard</button>
+            <button class="btn btn-success" onclick="downloadPDF()">📥 Download PDF</button>
+            <button class="btn btn-secondary" onclick="printCertificate()">🖨️ Print</button>
+        </div>
+
+        <div class="footer">📄 Certificate Preview · University Certificate Ecosystem</div>
+    </div>
+
+    <script>
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function updateUserDisplay() {
+            const user = getUser();
+            if (user) {
+                document.getElementById('userDisplay').textContent = `👤 ${user.name || user.username}`;
+            }
+        }
+
+        function downloadPDF() {
+            alert('📥 Downloading PDF...\n\nThis will download the certificate as a PDF file.');
+        }
+
+        function printCertificate() {
+            window.print();
+        }
+
+        // Load certificate from URL parameter
+        function loadCertificate() {
+            const params = new URLSearchParams(window.location.search);
+            const certNumber = params.get('cert');
+            
+            if (certNumber) {
+                const frame = document.getElementById('certificateFrame');
+                frame.innerHTML = `
+                    <iframe src="http://localhost:8006/certificates/pdf/download/${certNumber}"></iframe>
+                `;
+            }
+        }
+
+        updateUserDisplay();
+        loadCertificate();
+    </script>
+</body>
+</html>

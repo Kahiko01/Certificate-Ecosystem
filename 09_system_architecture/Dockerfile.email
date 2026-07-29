@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install fastapi uvicorn psycopg2-binary
+
+COPY email_service.py .
+
+CMD ["uvicorn", "email_service:app", "--host", "0.0.0.0", "--port", "8004"]

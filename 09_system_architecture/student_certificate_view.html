@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 My Certificates</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .cert-card {
+            background: rgba(30,41,59,0.85);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .cert-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99,102,241,0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .cert-card .cert-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+        .cert-card .cert-number {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #818cf8;
+            background: rgba(99,102,241,0.1);
+            padding: 2px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .cert-card .cert-name { font-size: 18px; font-weight: 700; margin: 8px 0; }
+        .cert-card .cert-detail { color: #94a3b8; font-size: 13px; margin: 4px 0; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .cert-actions { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            padding: 6px 14px; border: none; border-radius: 6px;
+            font-weight: 600; font-size: 12px; cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .footer { text-align: center; color: #475569; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.04); }
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        .generate-btn {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            margin-top: 16px;
+        }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+        @media (max-width: 768px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 My Certificates</h1>
+            <div class="header-right">
+                <span style="color:#94a3b8;font-size:13px;" id="userDisplay">👤 Student</span>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div id="certificatesList">
+            <div class="empty-state">
+                <span class="icon">📜</span>
+                <h2>No Certificates Yet</h2>
+                <p>Your certificates will appear here once they are generated.</p>
+                <button class="generate-btn" onclick="generateCertificate()">🎓 Generate My Certificate</button>
+            </div>
+        </div>
+
+        <div class="footer">🎓 University Certificate Ecosystem · Student Portal</div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8005';
+        const CERT_API = 'http://127.0.0.1:8001';
+
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function updateUserDisplay() {
+            const user = getUser();
+            if (user) {
+                document.getElementById('userDisplay').textContent = `👤 ${user.name || user.username}`;
+            }
+        }
+
+        async function loadCertificates() {
+            const user = getUser();
+            if (!user) return;
+
+            // For demo, show sample certificates
+            const sampleCerts = [
+                {
+                    number: 'CU/2026/BCom/000123',
+                    code: '4D68771F',
+                    name: 'Bachelor of Science in Computer Science',
+                    date: '2026-07-28',
+                    status: 'Issued'
+                },
+                {
+                    number: 'CU/2025/BCom/000089',
+                    code: '9EC8B4A2',
+                    name: 'Bachelor of Science in Computer Science',
+                    date: '2025-06-15',
+                    status: 'Issued'
+                }
+            ];
+
+            const container = document.getElementById('certificatesList');
+            
+            if (sampleCerts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📜</span>
+                        <h2>No Certificates Yet</h2>
+                        <p>Your certificates will appear here once they are generated.</p>
+                        <button class="generate-btn" onclick="generateCertificate()">🎓 Generate My Certificate</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="grid-3">
+                    ${sampleCerts.map(cert => `
+                        <div class="cert-card">
+                            <span class="cert-icon">🎓</span>
+                            <div>
+                                <span class="cert-number">${cert.number}</span>
+                            </div>
+                            <div class="cert-name">${cert.name}</div>
+                            <div class="cert-detail">📅 Issued: ${cert.date}</div>
+                            <div class="cert-detail">🔑 Code: ${cert.code}</div>
+                            <div style="margin-top: 8px;">
+                                <span class="badge badge-success">${cert.status}</span>
+                            </div>
+                            <div class="cert-actions">
+                                <button class="btn btn-primary" onclick="viewCertificate('${cert.number}')">👁️ View</button>
+                                <button class="btn btn-success" onclick="downloadCertificate('${cert.number}')">📥 Download</button>
+                                <button class="btn btn-secondary" onclick="verifyCertificate('${cert.code}')">🔍 Verify</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="text-align:center;margin-top:20px;">
+                    <button class="generate-btn" onclick="generateCertificate()">🎓 Generate New Certificate</button>
+                </div>
+            `;
+        }
+
+        async function generateCertificate() {
+            const user = getUser();
+            if (!user) {
+                alert('Please login first');
+                return;
+            }
+
+            const btn = document.querySelector('.generate-btn');
+            if (btn) {
+                btn.textContent = '⏳ Generating...';
+                btn.disabled = true;
+            }
+
+            try {
+                // Simulate certificate generation
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Generate random certificate data
+                const year = new Date().getFullYear();
+                const num = String(Math.floor(Math.random() * 100000) + 1).padStart(6, '0');
+                const certNumber = `CU/${year}/BCom/${num}`;
+                const verifyCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+                
+                alert(`✅ Certificate Generated!\n\nCertificate Number: ${certNumber}\nVerification Code: ${verifyCode}\n\nYou can view it in your certificates list.`);
+                
+                // Reload certificates
+                loadCertificates();
+                
+            } catch (error) {
+                alert('❌ Failed to generate certificate: ' + error.message);
+            } finally {
+                if (btn) {
+                    btn.textContent = '🎓 Generate New Certificate';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function viewCertificate(number) {
+            alert(`👁️ Viewing certificate: ${number}\n\nThis will open the certificate template in a new window.`);
+            window.open('certificate_template.html', '_blank');
+        }
+
+        function downloadCertificate(number) {
+            alert(`📥 Downloading certificate: ${number}\n\nThis will download the PDF version.`);
+        }
+
+        function verifyCertificate(code) {
+            alert(`🔍 Verifying certificate with code: ${code}\n\nVerification URL: http://localhost:8000/verify/${code}`);
+            window.open(`http://localhost:8000/verify/${code}`, '_blank');
+        }
+
+        // Check auth
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        // Init
+        checkAuth();
+        updateUserDisplay();
+        loadCertificates();
+    </script>
+</body>
+</html>

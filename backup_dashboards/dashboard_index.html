@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Certificate Ecosystem - Dashboard Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image: 
+                radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            color: #94a3b8;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .dashboard-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #f8fafc;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .dashboard-card .icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .dashboard-card .name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .dashboard-card .description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .dashboard-card .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+        .dashboard-card .badge.primary { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .dashboard-card .badge.success { background: rgba(16,185,129,0.15); color: #34d399; }
+        .dashboard-card .badge.warning { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .dashboard-card .badge.pink { background: rgba(236,72,153,0.15); color: #f472b6; }
+        .dashboard-card .badge.cyan { background: rgba(6,182,212,0.15); color: #22d3ee; }
+        .dashboard-card .badge.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .dashboard-card .badge.orange { background: rgba(251,146,60,0.15); color: #fb923c; }
+        .dashboard-card .badge.teal { background: rgba(20,184,166,0.15); color: #2dd4bf; }
+        .dashboard-card .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .dashboard-card .stats span { display: flex; align-items: center; gap: 4px; }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 28px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+        .status-bar {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .status-bar .online {
+            color: #34d399;
+            font-weight: 600;
+        }
+        .status-bar .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .footer {
+            text-align: center;
+            color: #475569;
+            font-size: 14px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Certificate Ecosystem</h1>
+            <p>Select a dashboard to manage your certificate ecosystem</p>
+        </div>
+
+        <div class="dashboard-grid" id="dashboardGrid">
+            <!-- Dashboards will be loaded here -->
+        </div>
+
+        <div class="status-bar">
+            <div>
+                <span class="dot"></span>
+                <span class="online">All Systems Online</span>
+            </div>
+            <div>
+                <span id="dashboardCount">Loading...</span>
+            </div>
+            <div>
+                <span id="lastUpdated"></span>
+            </div>
+        </div>
+
+        <div class="footer">
+            🎓 University Certificate Ecosystem · All Rights Reserved
+        </div>
+    </div>
+
+    <script>
+        // Dashboard definitions
+        const dashboards = [
+            {
+                icon: "🏛️",
+                name: "Master Dashboard",
+                description: "Central command center with all features in one place. Includes stats, charts, clearance, certificates, users, audit, and admin.",
+                file: "master_dashboard.html",
+                badge: "primary",
+                badgeText: "Recommended"
+            },
+            {
+                icon: "🔐",
+                name: "Login Page",
+                description: "Secure login portal with department selection and quick access for all roles including admin, registrar, finance, and more.",
+                file: "login.html",
+                badge: "cyan",
+                badgeText: "Gateway"
+            },
+            {
+                icon: "📊",
+                name: "Monitoring & Audit",
+                description: "Complete audit trail, user activity monitoring, system metrics, and real-time logging of all actions.",
+                file: "monitoring_dashboard.html",
+                badge: "purple",
+                badgeText: "Audit"
+            },
+            {
+                icon: "👥",
+                name: "Login Monitoring",
+                description: "Track user sessions, online users, login history, device information, and session statistics.",
+                file: "login_monitoring.html",
+                badge: "teal",
+                badgeText: "Sessions"
+            },
+            {
+                icon: "🎨",
+                name: "Colorful Dashboard",
+                description: "Visual dashboard with glass-morphism design, colorful charts, and animated statistics.",
+                file: "dashboard_colorful.html",
+                badge: "pink",
+                badgeText: "UI/UX"
+            },
+            {
+                icon: "📜",
+                name: "Certificate Management",
+                description: "Issue, verify, and manage certificates with clearance tracking and department workflows.",
+                file: "dashboard.html",
+                badge: "warning",
+                badgeText: "Certificates"
+            },
+            {
+                icon: "🔍",
+                name: "Clearance Dashboard",
+                description: "Student clearance management with department clearance tracking and financial clearance.",
+                file: "dashboard_clearance.html",
+                badge: "orange",
+                badgeText: "Clearance"
+            },
+            {
+                icon: "📈",
+                name: "Analytics Dashboard",
+                description: "Data visualization with charts, trends, and analytics for certificate issuance and user activity.",
+                file: "dashboard_with_charts.html",
+                badge: "purple",
+                badgeText: "Analytics"
+            }
+        ];
+
+        // Render dashboards
+        function renderDashboards() {
+            const grid = document.getElementById('dashboardGrid');
+            grid.innerHTML = dashboards.map(d => `
+                <a href="${d.file}" class="dashboard-card" target="_blank">
+                    <span class="icon">${d.icon}</span>
+                    <div class="name">${d.name}</div>
+                    <div class="description">${d.description}</div>
+                    <span class="badge ${d.badge}">${d.badgeText}</span>
+                    <div class="stats">
+                        <span>📂 ${d.file}</span>
+                        <span>🔗 http://localhost:9001/${d.file}</span>
+                    </div>
+                </a>
+            `).join('');
+
+            document.getElementById('dashboardCount').textContent = `📊 ${dashboards.length} Dashboards Available`;
+            document.getElementById('lastUpdated').textContent = `🕐 Updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // Load on page load
+        renderDashboards();
+    </script>
+</body>
+</html>

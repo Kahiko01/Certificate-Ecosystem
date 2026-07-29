@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Registry Dashboard - Certificate Ecosystem</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-online { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
+        .btn-block { width: 100%; justify-content: center; }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-6); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { 
+            text-align: left; padding: 8px 10px; color: var(--text-secondary); 
+            font-weight: 600; border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; background: var(--bg-primary);
+        }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+        }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-6); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        .text-purple { color: var(--accent-6); }
+        .search-bar {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .search-bar input { flex: 1; min-width: 150px; }
+        .search-bar select { min-width: 120px; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--bg-card); border-radius: 12px; padding: 24px;
+            max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
+        .modal-close:hover { color: white; }
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-6); color: white; }
+        .hidden { display: none; }
+        .cert-number {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--accent-6); background: rgba(139,92,246,0.1);
+            padding: 2px 10px; border-radius: 4px;
+        }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .search-bar { flex-direction: column; }
+            .search-bar input, .search-bar select { width: 100%; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 Registry Dashboard</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span class="badge badge-online">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">👨‍🎓</span><span class="number" id="totalStudents">-</span><div class="label">Total Students</div></div>
+            <div class="stat-card"><span class="icon">🎓</span><span class="number" id="graduating">-</span><div class="label">Graduating</div></div>
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="certificatesIssued">-</span><div class="label">Certificates Issued</div></div>
+            <div class="stat-card"><span class="icon">🔢</span><span class="number" id="certNumbers">-</span><div class="label">Certificate Numbers</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="approved">-</span><div class="label">Approved</div></div>
+            <div class="stat-card"><span class="icon">⏳</span><span class="number" id="pending">-</span><div class="label">Pending Approval</div></div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="students" onclick="switchTab('students')">👨‍🎓 Student Management</button>
+            <button class="tab" data-tab="graduation" onclick="switchTab('graduation')">🎓 Graduation Management</button>
+            <button class="tab" data-tab="certificates" onclick="switchTab('certificates')">📜 Certificate Generation</button>
+            <button class="tab" data-tab="numbers" onclick="switchTab('numbers')">🔢 Certificate Numbers</button>
+            <button class="tab" data-tab="signing" onclick="switchTab('signing')">✍️ Digital Signing</button>
+        </div>
+
+        <!-- ===== TAB 1: STUDENT MANAGEMENT ===== -->
+        <div id="tab-students" class="tab-content">
+            <div class="card">
+                <div class="card-title">🔍 Search Students</div>
+                <div class="search-bar">
+                    <input class="form-control" type="text" placeholder="Admission/Registration Number" id="searchNumber">
+                    <input class="form-control" type="text" placeholder="National ID/Passport" id="searchId">
+                    <input class="form-control" type="text" placeholder="Student Name" id="searchName">
+                    <select class="form-control" id="searchCourse">
+                        <option value="">All Courses</option>
+                        <option value="BSc Computer Science">BSc Computer Science</option>
+                        <option value="BSc Business">BSc Business</option>
+                        <option value="BSc Engineering">BSc Engineering</option>
+                    </select>
+                    <select class="form-control" id="searchYear">
+                        <option value="">All Years</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" onclick="searchStudents()">🔍 Search</button>
+                    <button class="btn btn-success btn-sm" onclick="importSIS()">📥 Import SIS</button>
+                    <button class="btn btn-purple btn-sm" onclick="showAddStudent()">➕ Add Student</button>
+                </div>
+                <div id="studentResult" class="result-box"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Student Records <span class="sub" id="studentCount">0 students</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Admission</th>
+                                <th>Registration</th>
+                                <th>Name</th>
+                                <th>Course</th>
+                                <th>Year</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB 2: GRADUATION MANAGEMENT ===== -->
+        <div id="tab-graduation" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🎓 Create Ceremony</div>
+                    <div class="form-group"><label>Ceremony Name</label><input class="form-control" type="text" id="ceremonyName" placeholder="e.g., 2026 Graduation Ceremony"></div>
+                    <div class="form-group"><label>Date</label><input class="form-control" type="date" id="ceremonyDate"></div>
+                    <div class="form-group"><label>Venue</label><input class="form-control" type="text" id="ceremonyVenue" placeholder="e.g., Main Auditorium"></div>
+                    <button class="btn btn-purple btn-block" onclick="createCeremony()">🎓 Create Ceremony</button>
+                    <div id="ceremonyResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📋 Graduation Lists</div>
+                    <div id="graduationLists">Loading...</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">✅ Graduation Approval</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Student</th><th>Course</th><th>Eligibility</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody id="approvalTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB 3: CERTIFICATE GENERATION ===== -->
+        <div id="tab-certificates" class="tab-content hidden">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">📜 Generate Certificate</div>
+                    <div class="form-group"><label>Student</label><select class="form-control" id="certStudent"><option value="">Select Student</option></select></div>
+                    <div class="form-group"><label>Certificate Type</label><select class="form-control" id="certType"><option value="DEGREE">Degree</option><option value="DIPLOMA">Diploma</option><option value="CERTIFICATE">Certificate</option></select></div>
+                    <button class="btn btn-success btn-block" onclick="generateCertificate()">🎓 Generate</button>
+                    <button class="btn btn-warning btn-block" onclick="bulkGenerate()">📊 Bulk Generate</button>
+                    <div id="certResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🖨️ Certificate Actions</div>
+                    <button class="btn btn-primary btn-block" onclick="previewCertificate()">👁️ Preview</button>
+                    <button class="btn btn-info btn-block" onclick="printCertificate()">🖨️ Print</button>
+                    <button class="btn btn-warning btn-block" onclick="reprintCertificate()">🔄 Reprint</button>
+                    <button class="btn btn-danger btn-block" onclick="cancelCertificate()">🚫 Cancel</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Statistics</div>
+                    <div id="certStats">
+                        <div class="text-muted">Total: <span id="certTotal">0</span></div>
+                        <div class="text-muted">Issued: <span id="certIssued">0</span></div>
+                        <div class="text-muted">Pending: <span id="certPending">0</span></div>
+                        <div class="text-muted">Cancelled: <span id="certCancelled">0</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Recent Certificates</div>
+                <div class="table-wrap"><table><thead><tr><th>Number</th><th>Student</th><th>Type</th><th>Date</th><th>Status</th></tr></thead><tbody id="recentCerts"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB 4: CERTIFICATE NUMBERS ===== -->
+        <div id="tab-numbers" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🔢 Certificate Number Format</div>
+                    <div class="form-group"><label>Prefix</label><input class="form-control" type="text" id="numPrefix" value="CU"></div>
+                    <div class="form-group"><label>Year Format</label><select class="form-control" id="numYear"><option value="YYYY">YYYY</option><option value="YY">YY</option></select></div>
+                    <div class="form-group"><label>Programme Code</label><input class="form-control" type="text" id="numProgramme" placeholder="e.g., BCom"></div>
+                    <div class="form-group"><label>Starting Number</label><input class="form-control" type="number" id="numStart" value="1"></div>
+                    <button class="btn btn-purple btn-block" onclick="updateNumberFormat()">✅ Update Format</button>
+                    <div id="numResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Number Statistics</div>
+                    <div id="numStats">
+                        <div class="text-muted">Total Issued: <span id="numTotal">0</span></div>
+                        <div class="text-muted">Available: <span id="numAvailable">0</span></div>
+                        <div class="text-muted">Reserved: <span id="numReserved">0</span></div>
+                        <div class="text-muted">Next Number: <span id="numNext" class="cert-number">CU/2026/BCom/000001</span></div>
+                    </div>
+                    <div class="form-group"><label>Reserve Numbers</label><input class="form-control" type="number" id="reserveCount" placeholder="How many to reserve"></div>
+                    <button class="btn btn-warning btn-block" onclick="reserveNumbers()">🔢 Reserve Numbers</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB 5: DIGITAL SIGNING ===== -->
+        <div id="tab-signing" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">✍️ Upload Signature</div>
+                    <div class="form-group"><label>Signature Image</label><input class="form-control" type="file" id="signatureFile" accept="image/*"></div>
+                    <div class="form-group"><label>Signatory Name</label><input class="form-control" type="text" id="signatoryName" placeholder="e.g., Dr. John Smith"></div>
+                    <div class="form-group"><label>Title</label><input class="form-control" type="text" id="signatoryTitle" placeholder="e.g., Registrar"></div>
+                    <button class="btn btn-purple btn-block" onclick="uploadSignature()">📤 Upload</button>
+                    <div id="signResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🏛️ Institutional Seal</div>
+                    <div class="form-group"><label>Seal Image</label><input class="form-control" type="file" id="sealFile" accept="image/*"></div>
+                    <button class="btn btn-primary btn-block" onclick="uploadSeal()">📤 Upload Seal</button>
+                    <div id="sealResult" class="result-box"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔐 Digital Signing Configuration</div>
+                <div class="grid-3">
+                    <div class="form-group"><label>Enable Digital Signing</label><select class="form-control" id="enableSigning"><option value="yes">Yes</option><option value="no">No</option></select></div>
+                    <div class="form-group"><label>Signing Algorithm</label><select class="form-control" id="signAlgorithm"><option value="RSA-SHA256">RSA-SHA256</option><option value="ECDSA-SHA256">ECDSA-SHA256</option></select></div>
+                    <div class="form-group"><label>Timestamp Authority</label><input class="form-control" type="text" id="timestampAuthority" placeholder="https://timestamp.example.com"></div>
+                </div>
+                <button class="btn btn-success btn-block" onclick="saveSigningConfig()">💾 Save Configuration</button>
+                <div id="configResult" class="result-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const API = 'http://127.0.0.1:8001';
+
+        // ===== GET USER =====
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function getUserRole() {
+            const user = getUser();
+            return user ? user.role : 'PUBLIC_VERIFIER';
+        }
+
+        function getUserName() {
+            const user = getUser();
+            return user ? user.name || user.username : 'Guest';
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            document.getElementById('userDisplay').textContent = `👤 ${getUserName()}`;
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadSampleData();
+        }
+
+        // ===== TAB SWITCHING =====
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // ===== LOGOUT =====
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        // ===== SAMPLE DATA =====
+        function loadSampleData() {
+            const students = [
+                { admission: 'ADM2024001', registration: 'REG2024001', name: 'John Doe', course: 'BSc Computer Science', year: '2026', status: 'Active' },
+                { admission: 'ADM2024002', registration: 'REG2024002', name: 'Jane Smith', course: 'BSc Business', year: '2026', status: 'Graduating' },
+                { admission: 'ADM2024003', registration: 'REG2024003', name: 'Bob Johnson', course: 'BSc Engineering', year: '2025', status: 'Graduated' },
+                { admission: 'ADM2024004', registration: 'REG2024004', name: 'Alice Brown', course: 'BSc Medicine', year: '2026', status: 'Active' },
+                { admission: 'ADM2024005', registration: 'REG2024005', name: 'Charlie Davis', course: 'BSc Law', year: '2025', status: 'Graduating' },
+            ];
+
+            // Student Table
+            const tbody = document.getElementById('studentTable');
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${s.admission}</td>
+                    <td>${s.registration}</td>
+                    <td>${s.name}</td>
+                    <td>${s.course}</td>
+                    <td>${s.year}</td>
+                    <td><span class="badge ${s.status === 'Active' ? 'badge-success' : s.status === 'Graduating' ? 'badge-warning' : 'badge-info'}">${s.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editStudent('${s.admission}')">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.admission}')">🗑️</button>
+                        <button class="btn btn-success btn-sm" onclick="mergeStudent('${s.admission}')">🔗</button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('studentCount').textContent = `${students.length} students`;
+
+            // Stats
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('graduating').textContent = students.filter(s => s.status === 'Graduating').length;
+            document.getElementById('certificatesIssued').textContent = '8';
+            document.getElementById('certNumbers').textContent = '142';
+            document.getElementById('approved').textContent = '6';
+            document.getElementById('pending').textContent = '2';
+
+            // Graduation Lists
+            document.getElementById('graduationLists').innerHTML = `
+                <div style="padding:8px 0;border-bottom:1px solid var(--border-color);">
+                    <strong>2026 Graduation Ceremony</strong>
+                    <span class="badge badge-purple">45 Students</span>
+                    <span class="badge badge-success">Published</span>
+                </div>
+                <div style="padding:8px 0;border-bottom:1px solid var(--border-color);">
+                    <strong>2025 Graduation Ceremony</strong>
+                    <span class="badge badge-purple">38 Students</span>
+                    <span class="badge badge-info">Approved</span>
+                </div>
+                <div style="padding:8px 0;">
+                    <strong>2024 Graduation Ceremony</strong>
+                    <span class="badge badge-purple">42 Students</span>
+                    <span class="badge badge-warning">Pending</span>
+                </div>
+            `;
+
+            // Approval Table
+            document.getElementById('approvalTable').innerHTML = `
+                <tr><td>John Doe</td><td>BSc CS</td><td><span class="badge badge-success">Eligible</span></td><td><span class="badge badge-warning">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="approveStudent()">✅ Approve</button></td></tr>
+                <tr><td>Jane Smith</td><td>BSc Business</td><td><span class="badge badge-success">Eligible</span></td><td><span class="badge badge-warning">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="approveStudent()">✅ Approve</button></td></tr>
+                <tr><td>Bob Johnson</td><td>BSc Engineering</td><td><span class="badge badge-danger">Not Eligible</span></td><td><span class="badge badge-danger">Rejected</span></td><td><button class="btn btn-warning btn-sm" onclick="reviewStudent()">📋 Review</button></td></tr>
+            `;
+
+            // Recent Certificates
+            document.getElementById('recentCerts').innerHTML = `
+                <tr><td><span class="cert-number">CU/2026/BCom/000123</span></td><td>John Doe</td><td>Degree</td><td>2026-07-15</td><td><span class="badge badge-success">Issued</span></td></tr>
+                <tr><td><span class="cert-number">CU/2026/BCom/000124</span></td><td>Jane Smith</td><td>Degree</td><td>2026-07-14</td><td><span class="badge badge-warning">Pending</span></td></tr>
+                <tr><td><span class="cert-number">CU/2025/BCom/000089</span></td><td>Bob Johnson</td><td>Degree</td><td>2025-06-20</td><td><span class="badge badge-success">Issued</span></td></tr>
+            `;
+
+            // Certificate Stats
+            document.getElementById('certTotal').textContent = '142';
+            document.getElementById('certIssued').textContent = '98';
+            document.getElementById('certPending').textContent = '32';
+            document.getElementById('certCancelled').textContent = '12';
+
+            // Number Stats
+            document.getElementById('numTotal').textContent = '142';
+            document.getElementById('numAvailable').textContent = '58';
+            document.getElementById('numReserved').textContent = '15';
+            document.getElementById('numNext').textContent = 'CU/2026/BCom/000143';
+
+            // Certificate Student Select
+            const select = document.getElementById('certStudent');
+            select.innerHTML = students.map(s => `<option value="${s.admission}">${s.name} (${s.admission})</option>`).join('');
+        }
+
+        // ===== STUDENT MANAGEMENT FUNCTIONS =====
+        function searchStudents() {
+            const result = document.getElementById('studentResult');
+            result.className = 'result-box show info';
+            result.textContent = '🔍 Searching students...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = '✅ Found 5 students matching your criteria';
+            }, 1000);
+        }
+
+        function importSIS() {
+            const result = document.getElementById('studentResult');
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Importing from SIS...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = '✅ Successfully imported 12 students from SIS';
+            }, 2000);
+        }
+
+        function showAddStudent() {
+            alert('📝 Add Student form will open here');
+        }
+
+        function editStudent(id) {
+            alert(`✏️ Editing student: ${id}`);
+        }
+
+        function deleteStudent(id) {
+            if (confirm(`Are you sure you want to delete student ${id}?`)) {
+                alert(`🗑️ Student ${id} deactivated`);
+            }
+        }
+
+        function mergeStudent(id) {
+            alert(`🔗 Merging duplicates for: ${id}`);
+        }
+
+        // ===== GRADUATION FUNCTIONS =====
+        function createCeremony() {
+            const result = document.getElementById('ceremonyResult');
+            const name = document.getElementById('ceremonyName').value;
+            const date = document.getElementById('ceremonyDate').value;
+            const venue = document.getElementById('ceremonyVenue').value;
+
+            if (!name || !date || !venue) {
+                result.className = 'result-box show error';
+                result.textContent = '⚠️ Please fill in all fields';
+                return;
+            }
+
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Creating ceremony...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = `✅ Ceremony "${name}" created successfully!`;
+            }, 1500);
+        }
+
+        function approveStudent() {
+            alert('✅ Student approved for graduation');
+        }
+
+        function reviewStudent() {
+            alert('📋 Reviewing student eligibility');
+        }
+
+        // ===== CERTIFICATE FUNCTIONS =====
+        function generateCertificate() {
+            const result = document.getElementById('certResult');
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Generating certificate...';
+            setTimeout(() => {
+                const certNumber = `CU/2026/BCom/${String(Math.floor(Math.random() * 1000) + 1).padStart(6, '0')}`;
+                result.className = 'result-box show success';
+                result.innerHTML = `✅ Certificate generated! Number: <span class="cert-number">${certNumber}</span>`;
+                loadSampleData();
+            }, 1500);
+        }
+
+        function bulkGenerate() {
+            alert('📊 Bulk generation wizard will open here');
+        }
+
+        function previewCertificate() {
+            alert('👁️ Certificate preview will open in new window');
+        }
+
+        function printCertificate() {
+            alert('🖨️ Sending to printer...');
+        }
+
+        function reprintCertificate() {
+            alert('🔄 Reprinting certificate...');
+        }
+
+        function cancelCertificate() {
+            if (confirm('Are you sure you want to cancel this certificate?')) {
+                alert('🚫 Certificate cancelled');
+            }
+        }
+
+        // ===== NUMBER MANAGEMENT FUNCTIONS =====
+        function updateNumberFormat() {
+            const result = document.getElementById('numResult');
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Updating number format...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = '✅ Number format updated successfully!';
+            }, 1000);
+        }
+
+        function reserveNumbers() {
+            const count = document.getElementById('reserveCount').value;
+            if (!count || count < 1) {
+                alert('Please enter a valid number to reserve');
+                return;
+            }
+            alert(`🔢 ${count} certificate numbers reserved successfully!`);
+        }
+
+        // ===== SIGNING FUNCTIONS =====
+        function uploadSignature() {
+            const result = document.getElementById('signResult');
+            const name = document.getElementById('signatoryName').value;
+            const title = document.getElementById('signatoryTitle').value;
+
+            if (!name || !title) {
+                result.className = 'result-box show error';
+                result.textContent = '⚠️ Please enter signatory name and title';
+                return;
+            }
+
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Uploading signature...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = `✅ Signature uploaded for ${name} (${title})`;
+            }, 1500);
+        }
+
+        function uploadSeal() {
+            const result = document.getElementById('sealResult');
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Uploading seal...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = '✅ Institutional seal uploaded successfully!';
+            }, 1500);
+        }
+
+        function saveSigningConfig() {
+            const result = document.getElementById('configResult');
+            result.className = 'result-box show info';
+            result.textContent = '⏳ Saving configuration...';
+            setTimeout(() => {
+                result.className = 'result-box show success';
+                result.textContent = '✅ Signing configuration saved successfully!';
+            }, 1000);
+        }
+
+        // ===== REFRESH =====
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadSampleData();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
+<script>
+// Add certificate generation functions to registry dashboard
+async function generateCertificateFromRegistry() {
+    const studentSelect = document.getElementById('certStudent');
+    const studentId = studentSelect.value;
+    const studentName = studentSelect.options[studentSelect.selectedIndex]?.text || 'Student';
+    const programme = document.getElementById('certType').value;
+    const resultDiv = document.getElementById('certResult');
+    
+    if (!studentId) {
+        resultDiv.className = 'result-box show error';
+        resultDiv.textContent = '⚠️ Please select a student';
+        return;
+    }
+    
+    resultDiv.className = 'result-box show info';
+    resultDiv.textContent = '⏳ Generating certificate...';
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8005/certificates/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                student_name: studentName,
+                programme: programme,
+                honours: 'First Class',
+                graduation_date: new Date().toISOString().split('T')[0]
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            resultDiv.className = 'result-box show success';
+            resultDiv.innerHTML = `
+                ✅ Certificate generated successfully!
+                <br>Number: <span class="cert-number">${data.certificate.certificate_number}</span>
+                <br>Verification Code: <span class="cert-number">${data.certificate.verification_code}</span>
+                <br>Generated by: ${data.generated_by}
+            `;
+        } else {
+            resultDiv.className = 'result-box show error';
+            resultDiv.textContent = '❌ ' + (data.detail || 'Failed to generate certificate');
+        }
+    } catch (error) {
+        resultDiv.className = 'result-box show error';
+        resultDiv.textContent = '❌ Error: ' + error.message;
+    }
+}
+</script>
+<script>
+// ===== CERTIFICATE PDF FUNCTIONS =====
+async function generateCertificatePDF() {
+    const studentSelect = document.getElementById('certStudent');
+    const studentId = studentSelect.value;
+    const studentName = studentSelect.options[studentSelect.selectedIndex]?.text || 'Student';
+    const programme = document.getElementById('certType').value;
+    const resultDiv = document.getElementById('certResult');
+    
+    if (!studentId) {
+        resultDiv.className = 'result-box show error';
+        resultDiv.textContent = '⚠️ Please select a student';
+        return;
+    }
+    
+    resultDiv.className = 'result-box show info';
+    resultDiv.textContent = '⏳ Generating certificate PDF...';
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8006/certificates/pdf/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                student_name: studentName,
+                programme: programme,
+                honours: 'First Class Honours',
+                graduation_date: new Date().toISOString().split('T')[0],
+                registrar_name: document.getElementById('registrarName')?.value || 'Dr. Sarah Johnson',
+                vice_chancellor_name: document.getElementById('vcName')?.value || 'Prof. Michael Brown',
+                dean_name: document.getElementById('deanName')?.value || 'Prof. Alice Smith'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            resultDiv.className = 'result-box show success';
+            resultDiv.innerHTML = `
+                ✅ Certificate PDF generated successfully!
+                <br>📄 <a href="${data.download_url}" target="_blank" class="text-purple">Download PDF</a>
+                <br>🔢 Number: <span class="cert-number">${data.certificate_number}</span>
+                <br>🔑 Code: <span class="cert-number">${data.verification_code}</span>
+                <br>👤 Generated by: ${data.generated_by}
+                <br><br>
+                <button class="btn btn-success btn-sm" onclick="window.open('${data.download_url}', '_blank')">📥 Download PDF</button>
+                <button class="btn btn-primary btn-sm" onclick="previewCertificate('${data.certificate_number}')">👁️ Preview</button>
+            `;
+        } else {
+            resultDiv.className = 'result-box show error';
+            resultDiv.textContent = '❌ ' + (data.detail || 'Failed to generate certificate');
+        }
+    } catch (error) {
+        resultDiv.className = 'result-box show error';
+        resultDiv.textContent = '❌ Error: ' + error.message;
+    }
+}
+
+function previewCertificate(certNumber) {
+    alert(`👁️ Previewing certificate: ${certNumber}\n\nThis will open the certificate preview.`);
+    window.open(`http://localhost:8006/certificates/pdf/download/${certNumber}`, '_blank');
+}
+
+// ===== UPDATE GENERATE BUTTON =====
+function updateCertificateButtons() {
+    const generateBtn = document.querySelector('.btn-purple');
+    if (generateBtn) {
+        generateBtn.onclick = generateCertificatePDF;
+        generateBtn.textContent = '🎓 Generate PDF Certificate';
+    }
+}
+
+// Run on load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCertificateButtons();
+});
+</script>

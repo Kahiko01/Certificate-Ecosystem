@@ -1,0 +1,20 @@
+=========================================
+🔐 LOGIN PAGE - TO BE REBUILT
+=========================================
+
+The login page has been removed and will be rebuilt later.
+
+When rebuilding, consider:
+1. Better UI/UX design
+2. Role-based redirection
+3. Remember me functionality
+4. Password reset
+5. OAuth2 integration
+6. Two-factor authentication
+
+Current Status:
+- Auth service is running on port 8001
+- Unified dashboard is the main entry point
+- Login will be re-implemented later
+
+=========================================

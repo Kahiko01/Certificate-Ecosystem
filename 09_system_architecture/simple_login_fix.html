@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body { font-family: Arial; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: rgba(30,41,59,0.85); padding: 40px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); max-width: 400px; width: 100%; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: white; }
+        button { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .error { color: #ef4444; margin: 10px 0; display: none; }
+        .success { color: #10b981; margin: 10px 0; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 style="text-align:center;">🎓 Certificate Ecosystem</h1>
+        <p style="text-align:center;color:#94a3b8;">Login to your dashboard</p>
+        
+        <select id="roleSelect" onchange="fillCredentials()">
+            <option value="system_admin:admin_hash">⚙️ System Admin</option>
+            <option value="registrar:default_hash">📋 Registrar</option>
+            <option value="finance_head:default_hash">💰 Finance Head</option>
+            <option value="dean:default_hash">🏫 Dean</option>
+            <option value="student1:default_hash">👨‍🎓 Student</option>
+        </select>
+        
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+        <button onclick="login()">🔐 Login</button>
+        
+        <p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:16px;">Default credentials loaded</p>
+    </div>
+
+    <script>
+        function fillCredentials() {
+            const val = document.getElementById('roleSelect').value;
+            const parts = val.split(':');
+            document.getElementById('username').value = parts[0];
+            document.getElementById('password').value = parts[1];
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            error.style.display = 'none';
+            success.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:8001/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({username, password})
+                });
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    success.textContent = '✅ Login successful! Redirecting...';
+                    success.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard_hub.html';
+                    }, 1000);
+                } else {
+                    error.textContent = '❌ ' + (data.detail || 'Invalid credentials');
+                    error.style.display = 'block';
+                }
+            } catch (e) {
+                error.textContent = '❌ Connection error: ' + e.message;
+                error.style.display = 'block';
+            }
+        }
+        
+        fillCredentials();
+    </script>
+</body>
+</html>

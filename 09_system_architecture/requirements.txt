@@ -1,1 +1,4 @@
 pyjwt==2.8.0
+reportlab==4.0.4
+qrcode==7.4.2
+Pillow==10.1.0

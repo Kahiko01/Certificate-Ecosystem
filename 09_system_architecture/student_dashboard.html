@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👨‍🎓 Student Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .header h1 {
+            font-size: 28px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .user-info {
+            background: rgba(30,41,59,0.85);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px; font-weight: 700; margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .number { font-size: 28px; font-weight: 800; color: #818cf8; }
+        .stat-card .label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:rgba(15,23,42,0.8);border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:20px;">
+        <div style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#e0e7ff,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏛️ Certificate Ecosystem</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span id="userBadge" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+            <button onclick="logout()" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-family:Inter,sans-serif;font-size:13px;">🚪 Logout</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍🎓 Student Dashboard</h1>
+            <div class="user-info" id="userInfo">Loading...</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid-3">
+            <div class="stat-card">
+                <div class="number" id="gpa">-</div>
+                <div class="label">Current GPA</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="courses">-</div>
+                <div class="label">Courses Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="status">-</div>
+                <div class="label">Academic Status</div>
+            </div>
+        </div>
+
+        <!-- Certificates -->
+        <div class="card">
+            <div class="card-title">📜 My Certificates</div>
+            <div id="certificatesList">Loading...</div>
+        </div>
+
+        <!-- Clearance Status -->
+        <div class="card">
+            <div class="card-title">🔍 Clearance Status</div>
+            <div id="clearanceStatus">Loading...</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-title">⚡ Quick Actions</div>
+            <div class="grid-3">
+                <button class="btn btn-primary" onclick="verifyCertificate()">🔍 Verify My Certificate</button>
+                <button class="btn btn-primary" onclick="requestTranscript()">📄 Request Transcript</button>
+                <button class="btn btn-primary" onclick="viewProfile()">👤 View Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get user from localStorage
+        function getUser() {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                try {
+                    return JSON.parse(userData);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        function updateUserInfo() {
+            const user = getUser();
+            const info = document.getElementById('userInfo');
+            if (user) {
+                info.innerHTML = `
+                    <strong>${user.name || user.username}</strong>
+                    <span style="color:#94a3b8;margin:0 8px;">·</span>
+                    <span class="badge badge-info">${user.role || 'STUDENT'}</span>
+                `;
+            } else {
+                info.innerHTML = '<span style="color:#94a3b8;">Not logged in</span>';
+            }
+        }
+
+        // Mock data for student
+        function loadStudentData() {
+            document.getElementById('gpa').textContent = '3.8';
+            document.getElementById('courses').textContent = '32';
+            document.getElementById('status').innerHTML = '<span class="badge badge-success">Active</span>';
+
+            // Mock certificates
+            document.getElementById('certificatesList').innerHTML = `
+                <table>
+                    <thead><tr><th>Certificate</th><th>Number</th><th>Issue Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>BSc Computer Science</td>
+                            <td>CERT-2026-001</td>
+                            <td>2026-06-15</td>
+                            <td><span class="badge badge-success">Verified</span></td>
+                        </tr>
+                        <tr>
+                            <td>BSc Computer Science (Provisional)</td>
+                            <td>CERT-2026-002</td>
+                            <td>2026-05-30</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            // Mock clearance
+            document.getElementById('clearanceStatus').innerHTML = `
+                <div class="grid-2">
+                    <div><strong>Academic:</strong> <span class="badge badge-success">Cleared</span></div>
+                    <div><strong>Finance:</strong> <span class="badge badge-success">Cleared</span></div>
+                    <div><strong>Library:</strong> <span class="badge badge-success">Cleared</span></div>
+                    <div><strong>Accommodation:</strong> <span class="badge badge-warning">Pending</span></div>
+                </div>
+            `;
+        }
+
+        function verifyCertificate() {
+            alert('🔍 Certificate verification portal will open here');
+        }
+
+        function requestTranscript() {
+            alert('📄 Transcript request submitted!');
+        }
+
+        function viewProfile() {
+            alert('👤 Profile page will open here');
+        }
+
+        // Check if logged in
+        function checkAuth() {
+            const user = getUser();
+            if (!user) {
+            }
+        }
+
+        // Initialize
+        checkAuth();
+        updateUserInfo();
+        loadStudentData();
+    </script>
+    <!-- Logout Component -->
+    <script>addLogoutButton();</script>
+</body>
+</html>
+<script>
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        window.location.href = 'login_with_rbac.html';
+    }
+}
+function updateUserBadge() {
+    try {
+        const data = localStorage.getItem('user');
+        if (data) {
+            const user = JSON.parse(data);
+            document.getElementById('userBadge').textContent = `👤 ${user.name || user.username}`;
+        }
+    } catch {}
+}
+document.addEventListener('DOMContentLoaded', updateUserBadge);
+</script>

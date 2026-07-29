@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Certificate Ecosystem - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            padding: 20px;
+        }
+        .login-container {
+            max-width: 480px;
+            width: 100%;
+        }
+        .login-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-header .logo {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-header p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        .form-group input::placeholder {
+            color: #64748b;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.3);
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            margin-bottom: 16px;
+        }
+        .error-message.show { display: block; }
+        .success-message {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.2);
+            color: #34d399;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            margin-bottom: 16px;
+        }
+        .success-message.show { display: block; }
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .login-footer a {
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-footer a:hover { text-decoration: underline; }
+        .department-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .dept-btn {
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .dept-btn:hover {
+            background: rgba(99,102,241,0.1);
+            border-color: #6366f1;
+            color: white;
+        }
+        .dept-btn.active {
+            background: rgba(99,102,241,0.15);
+            border-color: #6366f1;
+            color: white;
+        }
+        .dept-btn .icon { display: block; font-size: 20px; margin-bottom: 2px; }
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .btn-login.loading .loading-spinner { display: inline-block; }
+        .btn-login.loading span { display: none; }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .role-badge.admin { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .role-badge.registrar { background: rgba(6,182,212,0.2); color: #22d3ee; }
+        .role-badge.finance { background: rgba(16,185,129,0.2); color: #34d399; }
+        .role-badge.academic { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .role-badge.library { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        .role-badge.accommodation { background: rgba(236,72,153,0.2); color: #f472b6; }
+        .role-badge.discipline { background: rgba(239,68,68,0.2); color: #f87171; }
+        .role-badge.registry { background: rgba(52,211,153,0.2); color: #34d399; }
+        .role-badge.senate { background: rgba(251,191,36,0.2); color: #fbbf24; }
+        .role-badge.student { background: rgba(148,163,184,0.2); color: #94a3b8; }
+        
+        .quick-login {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .quick-login-title {
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .quick-login-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+        .quick-login-btn {
+            padding: 6px 8px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: #94a3b8;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .quick-login-btn:hover {
+            background: rgba(99,102,241,0.1);
+            border-color: #6366f1;
+            color: white;
+        }
+        .quick-login-btn .emoji { font-size: 14px; display: block; }
+        @media (max-width: 480px) {
+            .login-card { padding: 24px; }
+            .department-selector { grid-template-columns: 1fr 1fr; }
+            .quick-login-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <span class="logo">🎓</span>
+                <h1>Certificate Ecosystem</h1>
+                <p>Sign in to access your dashboard</p>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <!-- Department Quick Select -->
+            <div class="department-selector">
+                <button class="dept-btn" onclick="selectDepartment('admin')">
+                    <span class="icon">⚙️</span>Admin
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('registrar')">
+                    <span class="icon">📋</span>Registrar
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('finance')">
+                    <span class="icon">💰</span>Finance
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('academic')">
+                    <span class="icon">📚</span>Academic
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('library')">
+                    <span class="icon">📖</span>Library
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('accommodation')">
+                    <span class="icon">🏠</span>Accommodation
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('discipline')">
+                    <span class="icon">⚖️</span>Discipline
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('registry')">
+                    <span class="icon">📋</span>Registry
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('senate')">
+                    <span class="icon">🏛️</span>Senate
+                </button>
+                <button class="dept-btn" onclick="selectDepartment('student')">
+                    <span class="icon">👨‍🎓</span>Student
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>👤 Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span>🔐 Sign In</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+
+            <!-- Quick Login -->
+            <div class="quick-login">
+                <div class="quick-login-title">⚡ Quick Access</div>
+                <div class="quick-login-grid">
+                    <button class="quick-login-btn" onclick="quickLogin('system_admin', 'admin_hash')">
+                        <span class="emoji">⚙️</span>System Admin
+                    </button>
+                    <button class="quick-login-btn" onclick="quickLogin('registrar', 'default_hash')">
+                        <span class="emoji">📋</span>Registrar
+                    </button>
+                    <button class="quick-login-btn" onclick="quickLogin('finance_head', 'default_hash')">
+                        <span class="emoji">💰</span>Finance Head
+                    </button>
+                    <button class="quick-login-btn" onclick="quickLogin('academic_head', 'default_hash')">
+                        <span class="emoji">📚</span>Academic Head
+                    </button>
+                    <button class="quick-login-btn" onclick="quickLogin('library_head', 'default_hash')">
+                        <span class="emoji">📖</span>Library Head
+                    </button>
+                    <button class="quick-login-btn" onclick="quickLogin('registry_head', 'default_hash')">
+                        <span class="emoji">📋</span>Registry Head
+                    </button>
+                </div>
+            </div>
+
+            <div class="login-footer">
+                <p>🔒 Secure login · All data encrypted</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_AUTH = 'http://localhost:8001';
+
+        // Department presets
+        const departmentPresets = {
+            admin: { username: 'system_admin', password: 'admin_hash', role: 'SYSTEM_ADMIN' },
+            registrar: { username: 'registrar', password: 'default_hash', role: 'REGISTRAR' },
+            finance: { username: 'finance_head', password: 'default_hash', role: 'FINANCE_HEAD' },
+            academic: { username: 'academic_head', password: 'default_hash', role: 'ACADEMIC_HEAD' },
+            library: { username: 'library_head', password: 'default_hash', role: 'LIBRARY_HEAD' },
+            accommodation: { username: 'accommodation_head', password: 'default_hash', role: 'ACCOMMODATION_HEAD' },
+            discipline: { username: 'discipline_head', password: 'default_hash', role: 'DISCIPLINE_HEAD' },
+            registry: { username: 'registry_head', password: 'default_hash', role: 'REGISTRY_HEAD' },
+            senate: { username: 'senate_head', password: 'default_hash', role: 'SENATE_HEAD' },
+            student: { username: 'student1', password: 'default_hash', role: 'STUDENT' }
+        };
+
+        function selectDepartment(dept) {
+            // Update active button
+            document.querySelectorAll('.dept-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.dept-btn[onclick*="${dept}"]`)?.classList.add('active');
+            
+            // Fill credentials
+            const preset = departmentPresets[dept];
+            if (preset) {
+                document.getElementById('username').value = preset.username;
+                document.getElementById('password').value = preset.password;
+                document.getElementById('username').focus();
+            }
+        }
+
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            handleLogin(new Event('submit'));
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            const btn = document.getElementById('loginBtn');
+            
+            // Reset messages
+            errorEl.className = 'error-message';
+            successEl.className = 'success-message';
+            errorEl.textContent = '';
+            successEl.textContent = '';
+            
+            if (!username || !password) {
+                showError('Please enter username and password');
+                return;
+            }
+            
+            // Show loading
+            btn.classList.add('loading');
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_AUTH}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store token and user info
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showSuccess(`✅ Welcome ${data.user.first_name} ${data.user.last_name}!`);
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = 'master_dashboard.html';
+                    }, 1500);
+                } else {
+                    showError(data.detail || 'Invalid credentials');
+                }
+            } catch (err) {
+                showError('Connection error. Please check if the auth service is running.');
+                console.error('Login error:', err);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.className = 'error-message show';
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMessage');
+            el.textContent = msg;
+            el.className = 'success-message show';
+        }
+
+        // Auto-select first department on load
+        window.onload = function() {
+            selectDepartment('admin');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 0; flex-wrap: wrap; gap: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .nav-btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-weight: 600; font-family: 'Inter', sans-serif; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            text-decoration: none;
+        }
+        .nav-btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+        .btn-primary:hover { background: rgba(99,102,241,0.25); }
+        .btn-logout { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .btn-logout:hover { background: rgba(239,68,68,0.25); }
+        .user-badge {
+            background: rgba(30,41,59,0.85);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card {
+            background: rgba(30,41,59,0.85);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); }
+        .card .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+        .card .title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .card .desc { color: #94a3b8; font-size: 14px; }
+        .card .action-btn {
+            margin-top: 12px; padding: 8px 20px;
+            background: rgba(99,102,241,0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .card .action-btn:hover { background: rgba(99,102,241,0.25); }
+        .footer { text-align: center; color: #475569; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.04); }
+    </style>
+</head>
+<body>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:rgba(15,23,42,0.8);border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:20px;">
+        <div style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#e0e7ff,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏛️ Certificate Ecosystem</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span id="userBadge" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+            <button onclick="logout()" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-family:Inter,sans-serif;font-size:13px;">🚪 Logout</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Admin Dashboard</h1>
+            <div class="header-right">
+                <span class="user-badge" id="userBadge">👤 Admin</span>
+                <a href="dashboard_hub.html" class="nav-btn btn-primary">🏛️ Hub</a>
+                <a href="monitoring_dashboard.html" class="nav-btn btn-primary">📊 Audit</a>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="card">
+                <span class="icon">👤</span>
+                <div class="title">User Management</div>
+                <div class="desc">Manage users, roles, and permissions</div>
+                <button class="action-btn" onclick="manageUsers()">👤 Manage Users</button>
+            </div>
+            <div class="card">
+                <span class="icon">⚙️</span>
+                <div class="title">System Settings</div>
+                <div class="desc">Configure system parameters and preferences</div>
+                <button class="action-btn" onclick="systemSettings()">⚙️ Settings</button>
+            </div>
+            <div class="card">
+                <span class="icon">📊</span>
+                <div class="title">Audit Logs</div>
+                <div class="desc">View all system audit logs and activities</div>
+                <button class="action-btn" onclick="viewAudit()">📊 View Logs</button>
+            </div>
+            <div class="card">
+                <span class="icon">🔐</span>
+                <div class="title">Security</div>
+                <div class="desc">Manage security settings and access control</div>
+                <button class="action-btn" onclick="securitySettings()">🔐 Security</button>
+            </div>
+            <div class="card">
+                <span class="icon">📈</span>
+                <div class="title">Reports</div>
+                <div class="desc">Generate and view system reports</div>
+                <button class="action-btn" onclick="viewReports()">📈 Reports</button>
+            </div>
+            <div class="card">
+                <span class="icon">🔍</span>
+                <div class="title">Monitoring</div>
+                <div class="desc">Monitor system health and performance</div>
+                <button class="action-btn" onclick="monitorSystem()">🔍 Monitor</button>
+            </div>
+        </div>
+
+        <div class="footer">🎓 University Certificate Ecosystem · Admin Panel</div>
+    </div>
+
+    <script>
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function updateUserBadge() {
+            const user = getUser();
+            const badge = document.getElementById('userBadge');
+            if (user) {
+                badge.textContent = `👤 ${user.name || user.username}`;
+            }
+        }
+
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+            }
+        }
+
+        function manageUsers() { alert('👤 User Management page will open here'); }
+        function systemSettings() { alert('⚙️ System Settings page will open here'); }
+        function viewAudit() { window.location.href = 'monitoring_dashboard.html'; }
+        function securitySettings() { alert('🔐 Security Settings page will open here'); }
+        function viewReports() { alert('📈 Reports page will open here'); }
+        function monitorSystem() { alert('🔍 Monitoring page will open here'); }
+
+        // Check if user is admin
+        function checkAdmin() {
+            const user = getUser();
+            if (!user || user.role !== 'SYSTEM_ADMIN') {
+                window.location.href = 'dashboard_hub.html';
+            }
+        }
+
+        checkAdmin();
+        updateUserBadge();
+    </script>
+</body>
+</html>
+<script>
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        window.location.href = 'login_with_rbac.html';
+    }
+}
+function updateUserBadge() {
+    try {
+        const data = localStorage.getItem('user');
+        if (data) {
+            const user = JSON.parse(data);
+            document.getElementById('userBadge').textContent = `👤 ${user.name || user.username}`;
+        }
+    } catch {}
+}
+document.addEventListener('DOMContentLoaded', updateUserBadge);
+</script>

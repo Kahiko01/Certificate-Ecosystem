@@ -1,0 +1,65 @@
+<script>
+// Logout function for all dashboards
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+    }
+}
+
+// Add logout button to page if not exists
+function addLogoutButton() {
+    // Check if logout button already exists
+    
+    const header = document.querySelector('.header, .header-right, .container > div:first-child');
+    if (header) {
+        const btn = document.createElement('button');
+        btn.onclick = logout;
+        btn.style.cssText = `
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-left: 12px;
+        `;
+        btn.onmouseover = function() {
+            this.style.background = 'rgba(239,68,68,0.25)';
+        };
+        btn.onmouseout = function() {
+            this.style.background = 'rgba(239,68,68,0.15)';
+        };
+        header.appendChild(btn);
+    }
+}
+
+// Run on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addLogoutButton);
+} else {
+    addLogoutButton();
+}
+</script>
+<script>
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        window.location.href = 'login_with_rbac.html';
+    }
+}
+function updateUserBadge() {
+    try {
+        const data = localStorage.getItem('user');
+        if (data) {
+            const user = JSON.parse(data);
+            document.getElementById('userBadge').textContent = `👤 ${user.name || user.username}`;
+        }
+    } catch {}
+}
+document.addEventListener('DOMContentLoaded', updateUserBadge);
+</script>

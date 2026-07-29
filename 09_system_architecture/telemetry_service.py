@@ -190,6 +190,11 @@ def log_certificate_audit(data: CertificateAuditCreate, ip_address: str = None):
 async def root():
     return {"message": "Telemetry Service", "status": "running"}
 
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "service": "telemetry", "timestamp": datetime.now().isoformat()}
+
 @app.post("/telemetry/audit")
 async def create_audit_log(audit: AuditLogCreate, request: Request):
     """Create an audit log entry"""

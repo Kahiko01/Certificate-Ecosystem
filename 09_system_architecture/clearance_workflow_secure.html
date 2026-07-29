@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Certificate & Record Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-online { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .badge-pink { background: rgba(236,72,153,0.15); color: #f472b6; }
+        
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-pink { background: var(--accent-7); }
+        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
+        .btn-block { width: 100%; justify-content: center; }
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { 
+            text-align: left; padding: 8px 10px; color: var(--text-secondary); 
+            font-weight: 600; border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; background: var(--bg-primary);
+        }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+        }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        
+        .clearance-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px;
+        }
+        .clearance-item {
+            padding: 10px 14px; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.15);
+        }
+        .clearance-item.cleared { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+        .clearance-item.pending { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
+        .clearance-item.not-cleared { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+        .clearance-item .dept-name { font-weight: 600; font-size: 12px; }
+        .clearance-item .dept-status { font-size: 11px; font-weight: 600; }
+        .clearance-item.cleared .dept-status { color: #10b981; }
+        .clearance-item.pending .dept-status { color: #f59e0b; }
+        .clearance-item.not-cleared .dept-status { color: #ef4444; }
+        
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        
+        .chart-container { position: relative; height: 180px; }
+        .role-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .role-finance { background: rgba(16,185,129,0.2); color: #10b981; }
+        .role-dean { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .role-accommodation { background: rgba(236,72,153,0.2); color: #f472b6; }
+        .role-discipline { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .role-registrar { background: rgba(6,182,212,0.2); color: #22d3ee; }
+        .role-admin { background: rgba(99,102,241,0.2); color: #818cf8; }
+        
+        .department-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .dept-action-card {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .dept-action-card .dept-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .dept-action-card .dept-status {
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } .department-actions { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .clearance-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 10px; font-size: 11px; }
+            .department-actions { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .department-actions { grid-template-columns: 1fr; } }
+        
+        .verification-code {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--accent-1); background: rgba(99,102,241,0.1);
+            padding: 2px 10px; border-radius: 4px;
+        }
+        
+        .student-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-fully-cleared { background: rgba(16,185,129,0.2); color: #10b981; }
+        .status-partial { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .status-not-cleared { background: rgba(239,68,68,0.2); color: #ef4444; }
+        
+        .dept-cleared { color: #10b981; font-weight: 600; }
+        .dept-pending { color: #f59e0b; font-weight: 600; }
+        .dept-not-cleared { color: #ef4444; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Certificate & Record Management System</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span id="roleDisplay" style="color:#94a3b8;font-size:13px;"></span>
+                <span class="badge badge-online">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">👨‍🎓</span><span class="number" id="totalStudents">-</span><div class="label">Total Students</div></div>
+            <div class="stat-card"><span class="icon">💰</span><span class="number" id="financeCleared">-</span><div class="label">Finance Cleared</div></div>
+            <div class="stat-card"><span class="icon">👨‍🏫</span><span class="number" id="deanCleared">-</span><div class="label">Dean Cleared</div></div>
+            <div class="stat-card"><span class="icon">🏠</span><span class="number" id="accommodationCleared">-</span><div class="label">Accommodation</div></div>
+            <div class="stat-card"><span class="icon">⚖️</span><span class="number" id="disciplineCleared">-</span><div class="label">Discipline</div></div>
+            <div class="stat-card"><span class="icon">📋</span><span class="number" id="registrarCleared">-</span><div class="label">Registrar</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="fullyCleared">-</span><div class="label">Fully Cleared</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="students" onclick="switchTab('students')">👨‍🎓 Students</button>
+            <button class="tab" data-tab="clearance" onclick="switchTab('clearance')">🔍 Clearance</button>
+            <button class="tab" data-tab="myclearance" onclick="switchTab('myclearance')">🏛️ My Department</button>
+            <button class="tab" data-tab="certificates" onclick="switchTab('certificates')">📜 Certificates</button>
+            <button class="tab" data-tab="reports" onclick="switchTab('reports')">📊 Reports</button>
+        </div>
+
+        <!-- ===== TAB: STUDENTS ===== -->
+        <div id="tab-students" class="tab-content">
+            <div class="card">
+                <div class="card-title">🔍 Search Students</div>
+                <div class="flex">
+                    <input class="form-control" type="text" placeholder="Student Number/Name" style="flex:1;" id="searchStudent">
+                    <select class="form-control" style="width:150px;" id="searchStatus">
+                        <option value="">All Status</option>
+                        <option value="FULLY_CLEARED">Fully Cleared</option>
+                        <option value="PARTIAL">Partial Clearance</option>
+                        <option value="NOT_CLEARED">Not Cleared</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" onclick="searchStudents()">🔍 Search</button>
+                    <button class="btn btn-success btn-sm" onclick="addStudent()">➕ Add Student</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Student Records <span class="sub" id="studentCount">0</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student Number</th>
+                                <th>Name</th>
+                                <th>Programme</th>
+                                <th>Finance</th>
+                                <th>Dean</th>
+                                <th>Accommodation</th>
+                                <th>Discipline</th>
+                                <th>Registrar</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CLEARANCE ===== -->
+        <div id="tab-clearance" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🔍 Student Clearance Status</div>
+                    <div class="form-group">
+                        <label>Student Number</label>
+                        <input class="form-control" type="text" id="clearanceStudent" placeholder="Enter student number">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="checkClearance()">🔍 Check Clearance</button>
+                    <div id="clearanceResult" class="result-box"></div>
+                    <div id="clearanceDetails"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Clearance Summary</div>
+                    <div id="clearanceSummary"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: MY DEPARTMENT (Role-Based) ===== -->
+        <div id="tab-myclearance" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🏛️ My Department Clearance</div>
+                <div id="myDeptInfo" class="text-muted" style="margin-bottom:12px;"></div>
+                <div class="form-group">
+                    <label>Student Number</label>
+                    <input class="form-control" type="text" id="myDeptStudent" placeholder="Enter student number">
+                </div>
+                <div id="myDeptActions"></div>
+                <div id="myDeptResult" class="result-box"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Students Pending My Department</div>
+                <div id="pendingMyDept"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CERTIFICATES ===== -->
+        <div id="tab-certificates" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🎓 Issue Certificate</div>
+                    <div class="form-group"><label>Student Number</label><input class="form-control" type="text" id="certStudent" placeholder="Enter student number"></div>
+                    <div class="form-group"><label>Certificate Type</label><select class="form-control" id="certType"><option value="Degree">Degree</option><option value="Diploma">Diploma</option><option value="Certificate">Certificate</option></select></div>
+                    <button class="btn btn-success btn-block" onclick="issueCertificate()">🎓 Issue Certificate</button>
+                    <div id="certResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📜 Recent Certificates</div>
+                    <div id="certList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REPORTS ===== -->
+        <div id="tab-reports" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📊 Clearance Reports</div>
+                <div class="grid-2">
+                    <button class="btn btn-primary btn-sm" onclick="generateFullReport()">📊 Full Report</button>
+                    <button class="btn btn-success btn-sm" onclick="exportReport()">📥 Export Report</button>
+                </div>
+                <div id="reportContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIG =====
+        const API = 'http://127.0.0.1:8000';
+
+        // Student data
+        let students = [
+            { id: 1, number: 'S2024001', name: 'John Doe', programme: 'BSc CS', finance: false, dean: false, accommodation: false, discipline: false, registrar: false },
+            { id: 2, number: 'S2024002', name: 'Jane Smith', programme: 'BSc Business', finance: false, dean: false, accommodation: false, discipline: false, registrar: false },
+            { id: 3, number: 'S2024003', name: 'Bob Johnson', programme: 'BSc Engineering', finance: false, dean: false, accommodation: false, discipline: false, registrar: false },
+            { id: 4, number: 'S2024004', name: 'Alice Brown', programme: 'BSc Medicine', finance: false, dean: false, accommodation: false, discipline: false, registrar: false },
+            { id: 5, number: 'S2024005', name: 'Charlie Davis', programme: 'LLB Law', finance: false, dean: false, accommodation: false, discipline: false, registrar: false },
+        ];
+
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function getUserRole() {
+            const user = getUser();
+            return user ? user.role : 'PUBLIC_VERIFIER';
+        }
+
+        function getMyDepartment() {
+            const role = getUserRole();
+            const deptMap = {
+                'FINANCE_HEAD': 'finance',
+                'FINANCE_OFFICER': 'finance',
+                'DEAN': 'dean',
+                'ACCOMMODATION_HEAD': 'accommodation',
+                'ACCOMMODATION_OFFICER': 'accommodation',
+                'DISCIPLINE_HEAD': 'discipline',
+                'DISCIPLINE_OFFICER': 'discipline',
+                'REGISTRAR': 'registrar',
+                'REGISTRY_HEAD': 'registrar',
+                'REGISTRY_OFFICER': 'registrar'
+            };
+            return deptMap[role] || null;
+        }
+
+        function getDepartmentDisplayName(dept) {
+            const map = {
+                'finance': '💰 Finance',
+                'dean': '👨‍🏫 Dean',
+                'accommodation': '🏠 Accommodation',
+                'discipline': '⚖️ Discipline',
+                'registrar': '📋 Registrar'
+            };
+            return map[dept] || dept;
+        }
+
+        function getDepartmentRole(dept) {
+            const map = {
+                'finance': ['FINANCE_HEAD', 'FINANCE_OFFICER'],
+                'dean': ['DEAN'],
+                'accommodation': ['ACCOMMODATION_HEAD', 'ACCOMMODATION_OFFICER'],
+                'discipline': ['DISCIPLINE_HEAD', 'DISCIPLINE_OFFICER'],
+                'registrar': ['REGISTRAR', 'REGISTRY_HEAD', 'REGISTRY_OFFICER']
+            };
+            return map[dept] || [];
+        }
+
+        function canClearDepartment(dept) {
+            const role = getUserRole();
+            const allowedRoles = getDepartmentRole(dept);
+            return allowedRoles.includes(role) || role === 'SYSTEM_ADMIN';
+        }
+
+        function getStudentStatus(student) {
+            const allCleared = student.finance && student.dean && student.accommodation && student.discipline && student.registrar;
+            if (allCleared) return 'FULLY_CLEARED';
+            const anyCleared = student.finance || student.dean || student.accommodation || student.discipline || student.registrar;
+            if (anyCleared) return 'PARTIAL';
+            return 'NOT_CLEARED';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            if (tabName === 'myclearance') loadMyDepartment();
+        }
+
+        function renderStudents() {
+            const tbody = document.getElementById('studentTable');
+            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+            const statusFilter = document.getElementById('searchStatus').value;
+
+            let filtered = students.filter(s => {
+                const matchName = s.name.toLowerCase().includes(searchTerm) || s.number.toLowerCase().includes(searchTerm);
+                const status = getStudentStatus(s);
+                const matchStatus = !statusFilter || status === statusFilter;
+                return matchName && matchStatus;
+            });
+
+            document.getElementById('studentCount').textContent = `${filtered.length} students`;
+
+            tbody.innerHTML = filtered.map((s, index) => {
+                const status = getStudentStatus(s);
+                const statusClass = status === 'FULLY_CLEARED' ? 'status-fully-cleared' : status === 'PARTIAL' ? 'status-partial' : 'status-not-cleared';
+                const statusLabel = status === 'FULLY_CLEARED' ? '✅ Fully Cleared' : status === 'PARTIAL' ? '⏳ Partial' : '❌ Not Cleared';
+                
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${s.number}</strong></td>
+                        <td>${s.name}</td>
+                        <td>${s.programme}</td>
+                        <td class="${s.finance ? 'dept-cleared' : 'dept-not-cleared'}">${s.finance ? '✅' : '❌'}</td>
+                        <td class="${s.dean ? 'dept-cleared' : 'dept-not-cleared'}">${s.dean ? '✅' : '❌'}</td>
+                        <td class="${s.accommodation ? 'dept-cleared' : 'dept-not-cleared'}">${s.accommodation ? '✅' : '❌'}</td>
+                        <td class="${s.discipline ? 'dept-cleared' : 'dept-not-cleared'}">${s.discipline ? '✅' : '❌'}</td>
+                        <td class="${s.registrar ? 'dept-cleared' : 'dept-not-cleared'}">${s.registrar ? '✅' : '❌'}</td>
+                        <td><span class="student-status ${statusClass}">${statusLabel}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = students.length;
+            const finance = students.filter(s => s.finance).length;
+            const dean = students.filter(s => s.dean).length;
+            const accommodation = students.filter(s => s.accommodation).length;
+            const discipline = students.filter(s => s.discipline).length;
+            const registrar = students.filter(s => s.registrar).length;
+            const fully = students.filter(s => s.finance && s.dean && s.accommodation && s.discipline && s.registrar).length;
+
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('financeCleared').textContent = finance;
+            document.getElementById('deanCleared').textContent = dean;
+            document.getElementById('accommodationCleared').textContent = accommodation;
+            document.getElementById('disciplineCleared').textContent = discipline;
+            document.getElementById('registrarCleared').textContent = registrar;
+            document.getElementById('fullyCleared').textContent = fully;
+        }
+
+        function searchStudents() {
+            renderStudents();
+            showResult('studentResult', 'info', '🔍 Search completed');
+        }
+
+        function addStudent() {
+            const name = prompt('Enter student name:');
+            if (!name) return;
+            const programme = prompt('Enter programme:');
+            if (!programme) return;
+            const number = `S${String(students.length + 1).padStart(4, '0')}`;
+            students.push({
+                id: students.length + 1,
+                number: number,
+                name: name,
+                programme: programme,
+                finance: false,
+                dean: false,
+                accommodation: false,
+                discipline: false,
+                registrar: false
+            });
+            renderStudents();
+            showResult('studentResult', 'success', `✅ Student ${name} added with number ${number}`);
+        }
+
+        function checkClearance() {
+            const number = document.getElementById('clearanceStudent').value.trim();
+            const resultDiv = document.getElementById('clearanceResult');
+            const detailsDiv = document.getElementById('clearanceDetails');
+
+            if (!number) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please enter a student number';
+                return;
+            }
+
+            const student = students.find(s => s.number === number);
+            if (!student) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ Student not found';
+                return;
+            }
+
+            const status = getStudentStatus(student);
+            resultDiv.className = 'result-box show ' + (status === 'FULLY_CLEARED' ? 'success' : status === 'PARTIAL' ? 'warning' : 'error');
+            resultDiv.textContent = status === 'FULLY_CLEARED' ? '✅ Student is Fully Cleared!' : status === 'PARTIAL' ? '⏳ Partial Clearance' : '❌ Not Cleared';
+
+            detailsDiv.innerHTML = `
+                <div style="margin-top:12px;">
+                    <div style="font-weight:600;font-size:14px;">${student.name} (${student.number})</div>
+                    <div class="clearance-grid">
+                        <div class="clearance-item ${student.finance ? 'cleared' : 'not-cleared'}">
+                            <span class="dept-name">💰 Finance</span>
+                            <span class="dept-status">${student.finance ? '✅ Cleared' : '❌ Pending'}</span>
+                        </div>
+                        <div class="clearance-item ${student.dean ? 'cleared' : 'not-cleared'}">
+                            <span class="dept-name">👨‍🏫 Dean</span>
+                            <span class="dept-status">${student.dean ? '✅ Cleared' : '❌ Pending'}</span>
+                        </div>
+                        <div class="clearance-item ${student.accommodation ? 'cleared' : 'not-cleared'}">
+                            <span class="dept-name">🏠 Accommodation</span>
+                            <span class="dept-status">${student.accommodation ? '✅ Cleared' : '❌ Pending'}</span>
+                        </div>
+                        <div class="clearance-item ${student.discipline ? 'cleared' : 'not-cleared'}">
+                            <span class="dept-name">⚖️ Discipline</span>
+                            <span class="dept-status">${student.discipline ? '✅ Cleared' : '❌ Pending'}</span>
+                        </div>
+                        <div class="clearance-item ${student.registrar ? 'cleared' : 'not-cleared'}">
+                            <span class="dept-name">📋 Registrar</span>
+                            <span class="dept-status">${student.registrar ? '✅ Cleared' : '❌ Pending'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== MY DEPARTMENT CLEARANCE (ROLE-BASED) =====
+        function loadMyDepartment() {
+            const myDept = getMyDepartment();
+            const container = document.getElementById('myDeptInfo');
+            const actionsDiv = document.getElementById('myDeptActions');
+            
+            if (!myDept) {
+                container.innerHTML = '⚠️ You do not have a department clearance role.';
+                actionsDiv.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `You are clearing for: <strong>${getDepartmentDisplayName(myDept)}</strong>`;
+
+            // Show pending students for this department
+            const pending = students.filter(s => !s[myDept]);
+            const pendingContainer = document.getElementById('pendingMyDept');
+            
+            if (pending.length === 0) {
+                pendingContainer.innerHTML = '<div class="text-muted">✅ All students cleared for your department</div>';
+            } else {
+                pendingContainer.innerHTML = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Student</th><th>Number</th><th>Programme</th><th>Action</th></tr></thead>
+                            <tbody>
+                                ${pending.map(s => `
+                                    <tr>
+                                        <td>${s.name}</td>
+                                        <td>${s.number}</td>
+                                        <td>${s.programme}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm" onclick="clearMyDepartment('${s.number}')">✅ Clear</button>
+                                            <button class="btn btn-danger btn-sm" onclick="rejectMyDepartment('${s.number}')">❌ Reject</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            // Actions
+            actionsDiv.innerHTML = `
+                <div style="margin-top:12px;">
+                    <div class="form-group">
+                        <label>Or enter student number:</label>
+                        <div class="flex">
+                            <input class="form-control" type="text" id="myDeptStudentManual" placeholder="Student number" style="flex:1;">
+                            <button class="btn btn-success btn-sm" onclick="clearMyDepartment(document.getElementById('myDeptStudentManual').value)">✅ Clear</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectMyDepartment(document.getElementById('myDeptStudentManual').value)">❌ Reject</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearMyDepartment(number) {
+            const myDept = getMyDepartment();
+            if (!myDept) {
+                showResult('myDeptResult', 'error', '⚠️ You are not authorized for any department');
+                return;
+            }
+
+            const student = students.find(s => s.number === number);
+            if (!student) {
+                showResult('myDeptResult', 'error', '❌ Student not found');
+                return;
+            }
+
+            if (student[myDept]) {
+                showResult('myDeptResult', 'warning', `⚠️ ${student.name} is already cleared for ${getDepartmentDisplayName(myDept)}`);
+                return;
+            }
+
+            student[myDept] = true;
+            renderStudents();
+            loadMyDepartment();
+            showResult('myDeptResult', 'success', `✅ ${student.name} cleared for ${getDepartmentDisplayName(myDept)}`);
+        }
+
+        function rejectMyDepartment(number) {
+            const myDept = getMyDepartment();
+            if (!myDept) {
+                showResult('myDeptResult', 'error', '⚠️ You are not authorized for any department');
+                return;
+            }
+
+            const student = students.find(s => s.number === number);
+            if (!student) {
+                showResult('myDeptResult', 'error', '❌ Student not found');
+                return;
+            }
+
+            if (!student[myDept]) {
+                showResult('myDeptResult', 'warning', `⚠️ ${student.name} is already not cleared for ${getDepartmentDisplayName(myDept)}`);
+                return;
+            }
+
+            student[myDept] = false;
+            renderStudents();
+            loadMyDepartment();
+            showResult('myDeptResult', 'warning', `⚠️ ${student.name} rejected for ${getDepartmentDisplayName(myDept)}`);
+        }
+
+        function issueCertificate() {
+            const number = document.getElementById('certStudent').value.trim();
+            if (!number) {
+                showResult('certResult', 'error', '⚠️ Enter a student number');
+                return;
+            }
+
+            const student = students.find(s => s.number === number);
+            if (!student) {
+                showResult('certResult', 'error', '❌ Student not found');
+                return;
+            }
+
+            const status = getStudentStatus(student);
+            if (status !== 'FULLY_CLEARED') {
+                showResult('certResult', 'error', '❌ Student not fully cleared. Cannot issue certificate.');
+                return;
+            }
+
+            const certNumber = `CERT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const verifyCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            showResult('certResult', 'success', `
+                🎓 Certificate Issued!
+                <br>Student: ${student.name}
+                <br>Certificate Number: <span class="verification-code">${certNumber}</span>
+                <br>Verification Code: <span class="verification-code">${verifyCode}</span>
+                <br>📄 <a href="#" onclick="alert('Download certificate PDF')">Download PDF</a>
+            `);
+
+            // Add to certificate list
+            const certList = document.getElementById('certList');
+            const currentContent = certList.innerHTML;
+            certList.innerHTML = `
+                <div style="padding:6px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>${certNumber}</span>
+                    <span class="badge badge-success">Issued</span>
+                    <span class="text-muted">${student.name}</span>
+                </div>
+            ` + (currentContent || '');
+        }
+
+        function generateFullReport() {
+            const report = students.map(s => {
+                const status = getStudentStatus(s);
+                return `${s.number}\t${s.name}\t${s.programme}\t${s.finance ? '✅' : '❌'}\t${s.dean ? '✅' : '❌'}\t${s.accommodation ? '✅' : '❌'}\t${s.discipline ? '✅' : '❌'}\t${s.registrar ? '✅' : '❌'}\t${status}`;
+            }).join('\n');
+
+            document.getElementById('reportContent').innerHTML = `
+                <pre style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;font-size:11px;color:#94a3b8;margin-top:12px;white-space:pre-wrap;">
+Student Clearance Report
+${'='.repeat(80)}
+#\tStudent\tProgramme\tFin\tDean\tAcc\tDis\tReg\tStatus
+${report}
+${'='.repeat(80)}
+Total Students: ${students.length}
+Fully Cleared: ${students.filter(s => getStudentStatus(s) === 'FULLY_CLEARED').length}
+                </pre>
+            `;
+        }
+
+        function exportReport() {
+            alert('📥 Report exported as CSV');
+        }
+
+        function showResult(id, type, message) {
+            const resultDiv = document.getElementById(id);
+            resultDiv.className = `result-box show ${type}`;
+            resultDiv.innerHTML = message;
+            setTimeout(() => {
+                resultDiv.className = 'result-box';
+            }, 8000);
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            renderStudents();
+            loadMyDepartment();
+            showResult('myDeptResult', 'info', '🔄 Refreshed');
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            const role = getUserRole();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            document.getElementById('roleDisplay').textContent = `🎯 ${role}`;
+            renderStudents();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadMyDepartment();
+        }
+
+        init();
+    </script>
+</body>
+</html>

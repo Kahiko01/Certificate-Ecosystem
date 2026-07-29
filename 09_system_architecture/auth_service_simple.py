@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
@@ -23,7 +23,6 @@ app.add_middleware(
 SECRET_KEY = "your-super-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 print("Starting Authentication Service...", file=sys.stderr, flush=True)
 
@@ -58,23 +57,9 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def create_refresh_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def verify_token(token: str) -> dict:
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
 @app.get("/")
 async def root():
-    return {"message": "Authentication Service", "status": "running", "version": "1.0"}
+    return {"message": "Authentication Service", "status": "running"}
 
 @app.get("/health")
 async def health():
@@ -98,23 +83,15 @@ class LoginRequest(BaseModel):
 
 @app.post("/auth/login")
 async def login(request: LoginRequest):
-    """Login and get access token"""
     conn = get_db()
     if not conn:
         raise HTTPException(status_code=503, detail="Database unavailable")
     
     cur = conn.cursor()
-    
-    # Get user with roles
     cur.execute("""
-        SELECT u.user_id, u.username, u.email, u.password_hash, u.first_name, u.last_name,
-               array_agg(r.name) as roles,
-               array_agg(r.department_code) as departments
+        SELECT u.user_id, u.username, u.password_hash, u.first_name, u.last_name
         FROM users u
-        LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.role_id
         WHERE u.username = %s AND u.is_active = TRUE
-        GROUP BY u.user_id
     """, (request.username,))
     
     result = cur.fetchone()
@@ -124,74 +101,25 @@ async def login(request: LoginRequest):
     if not result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    user_id, username, email, password_hash, first_name, last_name, roles, departments = result
+    user_id, username, password_hash, first_name, last_name = result
     
     if not verify_password(request.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Create tokens
     access_token = create_access_token({
-        "sub": username,
-        "user_id": str(user_id),
-        "roles": roles or []
-    })
-    
-    refresh_token = create_refresh_token({
         "sub": username,
         "user_id": str(user_id)
     })
     
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {
             "user_id": str(user_id),
             "username": username,
-            "email": email,
             "first_name": first_name,
-            "last_name": last_name,
-            "roles": roles or [],
-            "departments": [d for d in departments if d] or []
+            "last_name": last_name
         }
-    }
-
-@app.get("/auth/online-users")
-async def get_online_users():
-    """Get online users (simplified for now)"""
-    return {
-        "online_users": [
-            {
-                "user_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-                "username": "system_admin",
-                "first_name": "System",
-                "last_name": "Admin",
-                "login_time": datetime.now().isoformat(),
-                "last_activity": datetime.now().isoformat(),
-                "session_duration": 3600,
-                "ip_address": "127.0.0.1",
-                "device_type": "Desktop",
-                "browser": "Chrome",
-                "os": "Linux",
-                "roles": ["SYSTEM_ADMIN"]
-            }
-        ],
-        "count": 1
-    }
-
-@app.get("/auth/session-stats")
-async def get_session_stats():
-    """Get session statistics"""
-    return {
-        "online_users": 1,
-        "today": {
-            "total_logins": 5,
-            "unique_users": 3,
-            "successful": 4,
-            "failed": 1
-        },
-        "weekly_trend": [],
-        "timestamp": datetime.now().isoformat()
     }
 
 if __name__ == "__main__":
