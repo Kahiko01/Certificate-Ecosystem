@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Unified Department Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+            --accent-8: #fb923c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-pink { background: var(--accent-7); }
+        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
+        .btn-orange { background: var(--accent-8); }
+        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 20px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 16px; display: block; margin-bottom: 2px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        
+        .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { text-align: left; padding: 6px 8px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-primary); }
+        td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 6px 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white; font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        
+        .badge {
+            padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 600;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .badge-pink { background: rgba(236,72,153,0.15); color: #f472b6; }
+        
+        .result-box {
+            margin-top: 8px; padding: 8px 12px; border-radius: 6px;
+            font-size: 11px; display: none; line-height: 1.4;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        
+        .flex { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 10px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 4px 12px; border-radius: 4px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 10px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        
+        .chart-container { position: relative; height: 140px; }
+        
+        .clearance-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px;
+        }
+        .clearance-item {
+            padding: 6px 10px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.15);
+            font-size: 11px;
+        }
+        .clearance-item.cleared { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+        .clearance-item.pending { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
+        .clearance-item.not-cleared { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+        .clearance-item .dept-name { font-weight: 600; font-size: 10px; }
+        .clearance-item .dept-status { font-size: 10px; font-weight: 600; }
+        .clearance-item.cleared .dept-status { color: #10b981; }
+        .clearance-item.pending .dept-status { color: #f59e0b; }
+        .clearance-item.not-cleared .dept-status { color: #ef4444; }
+        
+        .barcode { font-family: 'Courier New', monospace; font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+        
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 8px; font-size: 9px; }
+            .clearance-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+        
+        .dept-selector {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .dept-btn {
+            padding: 4px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .dept-btn:hover {
+            border-color: var(--accent-1);
+            color: white;
+        }
+        .dept-btn.active {
+            border-color: var(--accent-1);
+            background: rgba(99,102,241,0.15);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Unified Department Dashboard</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <a href="dashboard_hub.html" class="btn btn-secondary btn-sm">🏛️ Hub</a>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Department Selector -->
+        <div class="card">
+            <div class="card-title">🏛️ Select Department</div>
+            <div class="dept-selector">
+                <button class="dept-btn active" data-dept="all" onclick="selectDepartment('all')">📊 All Departments</button>
+                <button class="dept-btn" data-dept="finance" onclick="selectDepartment('finance')">💰 Finance</button>
+                <button class="dept-btn" data-dept="registry" onclick="selectDepartment('registry')">📋 Registry</button>
+                <button class="dept-btn" data-dept="academic" onclick="selectDepartment('academic')">📚 Academic</button>
+                <button class="dept-btn" data-dept="dean" onclick="selectDepartment('dean')">🏫 Dean</button>
+                <button class="dept-btn" data-dept="accommodation" onclick="selectDepartment('accommodation')">🏠 Accommodation</button>
+                <button class="dept-btn" data-dept="discipline" onclick="selectDepartment('discipline')">⚖️ Discipline</button>
+                <button class="dept-btn" data-dept="student" onclick="selectDepartment('student')">👨‍🎓 Student</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><span class="icon">👨‍🎓</span><span class="number" id="totalStudents">-</span><div class="label">Total Students</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="cleared">-</span><div class="label">Cleared</div></div>
+            <div class="stat-card"><span class="icon">⏳</span><span class="number" id="pending">-</span><div class="label">Pending</div></div>
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="certificates">-</span><div class="label">Certificates</div></div>
+            <div class="stat-card"><span class="icon">📁</span><span class="number" id="files">-</span><div class="label">Files</div></div>
+            <div class="stat-card"><span class="icon">💰</span><span class="number" id="revenue">-</span><div class="label">Revenue (KES)</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
+            <button class="tab" data-tab="students" onclick="switchTab('students')">👨‍🎓 Students</button>
+            <button class="tab" data-tab="clearance" onclick="switchTab('clearance')">🔍 Clearance</button>
+            <button class="tab" data-tab="certificates" onclick="switchTab('certificates')">📜 Certificates</button>
+            <button class="tab" data-tab="inventory" onclick="switchTab('inventory')">📁 Inventory</button>
+            <button class="tab" data-tab="finance" onclick="switchTab('finance')">💰 Finance</button>
+        </div>
+
+        <!-- ===== TAB: OVERVIEW ===== -->
+        <div id="tab-overview" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Department Performance</div>
+                    <div class="chart-container"><canvas id="deptChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Clearance Trends</div>
+                    <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Recent Activity</div>
+                <div id="recentActivity"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: STUDENTS ===== -->
+        <div id="tab-students" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">👨‍🎓 Student Records <span class="sub" id="studentCount">0</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student</th>
+                                <th>Programme</th>
+                                <th>Status</th>
+                                <th>Clearance</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CLEARANCE ===== -->
+        <div id="tab-clearance" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🔍 Clearance Status</div>
+                <div id="clearanceOverview"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🏛️ Department Clearance</div>
+                <div class="clearance-grid" id="clearanceGrid"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CERTIFICATES ===== -->
+        <div id="tab-certificates" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🎓 Issue Certificate</div>
+                    <div class="form-group"><label>Student Number</label><input class="form-control" type="text" id="certStudent" placeholder="Enter student number"></div>
+                    <button class="btn btn-success btn-block" onclick="issueCertificate()">🎓 Issue Certificate</button>
+                    <div id="certResult" class="result-box"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📜 Recent Certificates</div>
+                    <div id="certList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: INVENTORY ===== -->
+        <div id="tab-inventory" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📁 Department Inventory</div>
+                <div class="grid-2">
+                    <div class="form-group"><label>File Name</label><input class="form-control" type="text" id="invFileName" placeholder="Enter file name"></div>
+                    <div class="form-group"><label>File Number</label><input class="form-control" type="text" id="invFileNumber" placeholder="e.g., DOC-2026-001"></div>
+                    <div class="form-group"><label>Category</label><select class="form-control" id="invCategory"><option value="Documents">Documents</option><option value="Records">Records</option><option value="Reports">Reports</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label>Location</label><input class="form-control" type="text" id="invLocation" placeholder="e.g., Cabinet A, Shelf 2"></div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="addInventory()">📁 Add File</button>
+                <div id="invResult" class="result-box"></div>
+                <div class="table-wrap" style="margin-top:12px;">
+                    <table>
+                        <thead><tr><th>#</th><th>File Name</th><th>Number</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody id="invTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: FINANCE ===== -->
+        <div id="tab-finance" class="tab-content hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">💰 Financial Overview</div>
+                    <div id="financeStats"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Revenue Chart</div>
+                    <div class="chart-container"><canvas id="financeChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SAMPLE DATA =====
+        let students = [
+            { id: 1, number: 'S2024001', name: 'John Doe', programme: 'BSc CS', status: 'Active', cleared: false },
+            { id: 2, number: 'S2024002', name: 'Jane Smith', programme: 'BSc Business', status: 'Active', cleared: false },
+            { id: 3, number: 'S2024003', name: 'Bob Johnson', programme: 'BSc Engineering', status: 'Active', cleared: false },
+            { id: 4, number: 'S2024004', name: 'Alice Brown', programme: 'BSc Medicine', status: 'Active', cleared: false },
+            { id: 5, number: 'S2024005', name: 'Charlie Davis', programme: 'LLB Law', status: 'Active', cleared: false },
+        ];
+
+        let inventory = [];
+        let invNextId = 1;
+        let currentDept = 'all';
+
+        function getUser() {
+            try { const data = localStorage.getItem('user'); return data ? JSON.parse(data) : null; } catch { return null; }
+        }
+
+        function getUserRole() {
+            const user = getUser();
+            return user ? user.role : 'PUBLIC_VERIFIER';
+        }
+
+        function isSystemAdmin() {
+            return getUserRole() === 'SYSTEM_ADMIN';
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function selectDepartment(dept) {
+            currentDept = dept;
+            document.querySelectorAll('.dept-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.dept-btn[data-dept="${dept}"]`).classList.add('active');
+            renderStudents();
+            updateStats();
+            renderClearance();
+            renderInventory();
+        }
+
+        function renderStudents() {
+            const tbody = document.getElementById('studentTableBody');
+            document.getElementById('studentCount').textContent = `${students.length} students`;
+            
+            tbody.innerHTML = students.map((s, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${s.number}</strong> ${s.name}</td>
+                    <td>${s.programme}</td>
+                    <td><span class="badge badge-success">${s.status}</span></td>
+                    <td><span class="badge ${s.cleared ? 'badge-success' : 'badge-warning'}">${s.cleared ? '✅ Cleared' : '⏳ Pending'}</span></td>
+                    <td>
+                        ${!s.cleared ? `<button class="btn btn-success btn-sm" onclick="clearStudent('${s.number}')">✅ Clear</button>` : `<span class="text-success">✓</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function clearStudent(number) {
+            const student = students.find(s => s.number === number);
+            if (student) {
+                student.cleared = true;
+                renderStudents();
+                updateStats();
+                renderClearance();
+            }
+        }
+
+        function updateStats() {
+            const total = students.length;
+            const cleared = students.filter(s => s.cleared).length;
+            const pending = total - cleared;
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('cleared').textContent = cleared;
+            document.getElementById('pending').textContent = pending;
+            document.getElementById('certificates').textContent = '0';
+            document.getElementById('files').textContent = inventory.length;
+            document.getElementById('revenue').textContent = '0';
+        }
+
+        function renderClearance() {
+            const cleared = students.filter(s => s.cleared).length;
+            const total = students.length;
+            const pending = total - cleared;
+            
+            document.getElementById('clearanceOverview').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                    <div style="background:rgba(16,185,129,0.1);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#10b981;">${cleared}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Cleared</div>
+                    </div>
+                    <div style="background:rgba(245,158,11,0.1);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#f59e0b;">${pending}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Pending</div>
+                    </div>
+                    <div style="background:rgba(99,102,241,0.1);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#818cf8;">${total}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Total</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('clearanceGrid').innerHTML = `
+                <div class="clearance-item ${cleared > 0 ? 'cleared' : 'pending'}">
+                    <span class="dept-name">💰 Finance</span>
+                    <span class="dept-status">${cleared > 0 ? '✅ Cleared' : '⏳ Pending'}</span>
+                </div>
+                <div class="clearance-item ${cleared > 1 ? 'cleared' : 'pending'}">
+                    <span class="dept-name">👨‍🏫 Dean</span>
+                    <span class="dept-status">${cleared > 1 ? '✅ Cleared' : '⏳ Pending'}</span>
+                </div>
+                <div class="clearance-item ${cleared > 2 ? 'cleared' : 'pending'}">
+                    <span class="dept-name">🏠 Accommodation</span>
+                    <span class="dept-status">${cleared > 2 ? '✅ Cleared' : '⏳ Pending'}</span>
+                </div>
+                <div class="clearance-item ${cleared > 3 ? 'cleared' : 'pending'}">
+                    <span class="dept-name">⚖️ Discipline</span>
+                    <span class="dept-status">${cleared > 3 ? '✅ Cleared' : '⏳ Pending'}</span>
+                </div>
+                <div class="clearance-item ${cleared > 4 ? 'cleared' : 'pending'}">
+                    <span class="dept-name">📋 Registrar</span>
+                    <span class="dept-status">${cleared > 4 ? '✅ Cleared' : '⏳ Pending'}</span>
+                </div>
+            `;
+        }
+
+        // ===== INVENTORY =====
+        function renderInventory() {
+            const tbody = document.getElementById('invTableBody');
+            if (inventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+                return;
+            }
+            tbody.innerHTML = inventory.map((item, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="barcode">${item.number}</span></td>
+                    <td><span class="badge badge-info">${item.category}</span></td>
+                    <td>${item.location}</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editInventory(${item.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInventory(${item.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('files').textContent = inventory.length;
+        }
+
+        function addInventory() {
+            const name = document.getElementById('invFileName').value.trim();
+            const number = document.getElementById('invFileNumber').value.trim();
+            const category = document.getElementById('invCategory').value;
+            const location = document.getElementById('invLocation').value.trim();
+            const resultDiv = document.getElementById('invResult');
+
+            if (!name || !number || !location) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please fill all fields';
+                return;
+            }
+
+            inventory.push({ id: invNextId++, name, number, category, location, status: 'Active' });
+            renderInventory();
+            document.getElementById('invFileName').value = '';
+            document.getElementById('invFileNumber').value = '';
+            document.getElementById('invLocation').value = '';
+            resultDiv.className = 'result-box show success';
+            resultDiv.textContent = `✅ File "${name}" added!`;
+            setTimeout(() => resultDiv.className = 'result-box', 3000);
+            updateStats();
+        }
+
+        function deleteInventory(id) {
+            if (confirm('Delete this file?')) {
+                inventory = inventory.filter(item => item.id !== id);
+                renderInventory();
+                updateStats();
+            }
+        }
+
+        function editInventory(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+            const newName = prompt('File Name:', item.name);
+            if (newName) item.name = newName;
+            const newNumber = prompt('File Number:', item.number);
+            if (newNumber) item.number = newNumber;
+            const newLocation = prompt('Location:', item.location);
+            if (newLocation) item.location = newLocation;
+            renderInventory();
+        }
+
+        function issueCertificate() {
+            const number = document.getElementById('certStudent').value.trim();
+            const resultDiv = document.getElementById('certResult');
+
+            if (!number) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Enter a student number';
+                return;
+            }
+
+            const student = students.find(s => s.number === number);
+            if (!student) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ Student not found';
+                return;
+            }
+
+            if (!student.cleared) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '❌ Student not cleared. Cannot issue certificate.';
+                return;
+            }
+
+            const certNumber = `CERT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const verifyCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            resultDiv.className = 'result-box show success';
+            resultDiv.innerHTML = `
+                🎓 Certificate Issued!
+                <br>Student: ${student.name}
+                <br>Certificate: <span class="barcode">${certNumber}</span>
+                <br>Verification: <span class="barcode">${verifyCode}</span>
+            `;
+
+            document.getElementById('certStudent').value = '';
+            document.getElementById('certificates').textContent = parseInt(document.getElementById('certificates').textContent) + 1;
+            
+            const certList = document.getElementById('certList');
+            certList.innerHTML = `
+                <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                    <span>${certNumber}</span>
+                    <span class="badge badge-success">Issued</span>
+                    <span class="text-muted">${student.name}</span>
+                </div>
+            ` + certList.innerHTML;
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            renderStudents();
+            updateStats();
+            renderClearance();
+            renderInventory();
+            loadCharts();
+        }
+
+        // ===== CHARTS =====
+        function loadCharts() {
+            // Department Chart
+            const ctx1 = document.getElementById('deptChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Finance', 'Registry', 'Academic', 'Dean', 'Accommodation', 'Discipline'],
+                    datasets: [{
+                        label: 'Performance',
+                        data: [85, 92, 78, 88, 72, 80],
+                        backgroundColor: ['#10b981', '#818cf8', '#f59e0b', '#f472b6', '#fb923c', '#06b6d4'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Trend Chart
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Clearances',
+                        data: [12, 18, 15, 22, 28, 32],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Finance Chart
+            const ctx3 = document.getElementById('financeChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true } } },
+                    cutout: '60%'
+                }
+            });
+
+            document.getElementById('financeStats').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#10b981;">KES 1,245,000</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Total Revenue</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <div style="font-size:24px;font-weight:800;color:#f59e0b;">KES 325,000</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Pending</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            
+            // Load sample inventory
+            const saved = localStorage.getItem('unified_inventory');
+            if (saved) {
+                try { inventory = JSON.parse(saved); invNextId = inventory.length + 1; } catch(e) { inventory = []; }
+            } else {
+                inventory = [
+                    { id: invNextId++, name: 'Student Records 2024', number: 'DOC-2024-001', category: 'Records', location: 'Cabinet A, Shelf 1', status: 'Active' },
+                    { id: invNextId++, name: 'Financial Reports', number: 'DOC-2024-002', category: 'Reports', location: 'Cabinet A, Shelf 2', status: 'Active' },
+                ];
+                localStorage.setItem('unified_inventory', JSON.stringify(inventory));
+            }
+            
+            refreshAll();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        init();
+    </script>
+</body>
+</html>
