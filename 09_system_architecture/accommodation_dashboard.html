@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Accommodation Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; color: white; }
+        .btn-primary { background: #6366f1; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-pink { background: #ec4899; }
+        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-warning { background: #f59e0b; color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: #94a3b8; }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: #ec4899; }
+        .stat-card .label { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 8px 10px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; background: #0f172a; }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: #94a3b8; }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: white; font-size: 13px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .barcode { font-family: 'Courier New', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .text-muted { color: #94a3b8; font-size: 11px; }
+        .text-center { text-align: center; }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Accommodation Dashboard</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="btn btn-secondary btn-sm" onclick="scrollToInventory()">📁 Inventory</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">🏠</span><span class="number" id="totalStudents">-</span><div class="label">Total Students</div></div>
+            <div class="stat-card"><span class="icon">🛏️</span><span class="number" id="occupied">-</span><div class="label">Occupied Rooms</div></div>
+            <div class="stat-card"><span class="icon">📋</span><span class="number" id="pending">-</span><div class="label">Pending Clearance</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="cleared">-</span><div class="label">Cleared</div></div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="card" id="inventorySection">
+            <div class="card-title">
+                📁 Accommodation File Inventory
+                <span class="sub" id="accommodationInventoryCount">0 files</span>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>File Name</label>
+                    <input class="form-control" type="text" id="accFileName" placeholder="Enter file name">
+                </div>
+                <div class="form-group">
+                    <label>File Number</label>
+                    <input class="form-control" type="text" id="accFileNumber" placeholder="e.g., ACC-2026-001">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" id="accFileCategory">
+                        <option value="Student Records">Student Records</option>
+                        <option value="Room Allocations">Room Allocations</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Reports">Reports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input class="form-control" type="text" id="accFileLocation" placeholder="e.g., Cabinet A, Shelf 2">
+                </div>
+            </div>
+            <button class="btn btn-pink btn-sm" onclick="addAccommodationInventory()">📁 Add File</button>
+            <div id="accInventoryResult" class="result-box"></div>
+            <div class="table-wrap" style="margin-top:12px;">
+                <table>
+                    <thead><tr><th>#</th><th>File Name</th><th>Number</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody id="accInventoryTable"><tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let accInventory = [];
+        let accNextId = 1;
+
+        function getUser() {
+            try { const data = localStorage.getItem('user'); return data ? JSON.parse(data) : null; } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadAccommodationInventory();
+        }
+
+        function scrollToInventory() {
+            const el = document.getElementById('inventorySection');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        const sampleAccInventory = [
+            { id: 1, name: 'Student Housing Records 2024', number: 'ACC-2024-001', category: 'Student Records', location: 'Cabinet A, Shelf 1', status: 'Active' },
+            { id: 2, name: 'Room Allocation Reports', number: 'ACC-2024-002', category: 'Room Allocations', location: 'Cabinet A, Shelf 2', status: 'Active' },
+            { id: 3, name: 'Maintenance Requests 2024', number: 'ACC-2024-003', category: 'Maintenance', location: 'Cabinet A, Shelf 3', status: 'Active' },
+        ];
+
+        function loadAccommodationInventory() {
+            const saved = localStorage.getItem('inventory_accommodation');
+            if (saved) {
+                try { accInventory = JSON.parse(saved); accNextId = accInventory.length + 1; } catch(e) { accInventory = []; }
+            } else {
+                localStorage.setItem('inventory_accommodation', JSON.stringify(sampleAccInventory));
+                accInventory = sampleAccInventory;
+                accNextId = accInventory.length + 1;
+            }
+            renderAccommodationInventory();
+        }
+
+        function renderAccommodationInventory() {
+            const tbody = document.getElementById('accInventoryTable');
+            const count = document.getElementById('accommodationInventoryCount');
+            if (accInventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+                if (count) count.textContent = '0 files';
+                return;
+            }
+            if (count) count.textContent = `${accInventory.length} files`;
+            tbody.innerHTML = accInventory.map((item, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="barcode">${item.number}</span></td>
+                    <td><span class="badge badge-info">${item.category}</span></td>
+                    <td>${item.location}</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editAccItem(${item.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAccItem(${item.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addAccommodationInventory() {
+            const name = document.getElementById('accFileName').value.trim();
+            const number = document.getElementById('accFileNumber').value.trim();
+            const category = document.getElementById('accFileCategory').value;
+            const location = document.getElementById('accFileLocation').value.trim();
+            const resultDiv = document.getElementById('accInventoryResult');
+            if (!name || !number || !location) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please fill all fields';
+                return;
+            }
+            accInventory.push({ id: accNextId++, name, number, category, location, status: 'Active' });
+            localStorage.setItem('inventory_accommodation', JSON.stringify(accInventory));
+            renderAccommodationInventory();
+            document.getElementById('accFileName').value = '';
+            document.getElementById('accFileNumber').value = '';
+            document.getElementById('accFileLocation').value = '';
+            resultDiv.className = 'result-box show success';
+            resultDiv.textContent = `✅ File "${name}" added!`;
+            setTimeout(() => resultDiv.className = 'result-box', 3000);
+        }
+
+        function deleteAccItem(id) {
+            if (confirm('Delete this file?')) {
+                accInventory = accInventory.filter(item => item.id !== id);
+                localStorage.setItem('inventory_accommodation', JSON.stringify(accInventory));
+                renderAccommodationInventory();
+            }
+        }
+
+        function editAccItem(id) {
+            const item = accInventory.find(i => i.id === id);
+            if (!item) return;
+            const newName = prompt('File Name:', item.name);
+            if (newName) item.name = newName;
+            const newNumber = prompt('File Number:', item.number);
+            if (newNumber) item.number = newNumber;
+            const newLocation = prompt('Location:', item.location);
+            if (newLocation) item.location = newLocation;
+            localStorage.setItem('inventory_accommodation', JSON.stringify(accInventory));
+            renderAccommodationInventory();
+        }
+
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) { window.location.href = 'login_with_rbac.html'; return; }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            document.getElementById('totalStudents').textContent = '156';
+            document.getElementById('occupied').textContent = '142';
+            document.getElementById('pending').textContent = '14';
+            document.getElementById('cleared').textContent = '128';
+            loadAccommodationInventory();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+        init();
+    </script>
+</body>
+</html>
