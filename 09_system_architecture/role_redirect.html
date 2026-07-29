@@ -158,3 +158,21 @@
     </script>
 </body>
 </html>
+<script>
+// Add inventory to registrar's dashboard options
+const registrarDashboards = [
+    'registry_dashboard.html',
+    'certificate_inventory.html',
+    'dashboard_hub.html'
+];
+
+function getRegistrarDashboard() {
+    // Check if user wants to go to inventory
+    const urlParams = new URLSearchParams(window.location.search);
+    const target = urlParams.get('target');
+    if (target === 'inventory') {
+        return 'certificate_inventory.html';
+    }
+    return 'registry_dashboard.html';
+}
+</script>

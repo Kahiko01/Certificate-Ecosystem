@@ -587,3 +587,24 @@
     </script>
 </body>
 </html>
+<script>
+// Add inventory link to unified dashboard
+function addInventoryToUnified() {
+    const registryTab = document.getElementById('tab-registry');
+    if (registryTab) {
+        const inventoryLink = document.createElement('div');
+        inventoryLink.style.cssText = 'margin-top:12px;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;text-align:center;';
+        inventoryLink.innerHTML = `
+            <span style="font-size:20px;">📁</span>
+            <div style="font-weight:600;margin-top:4px;">Certificate Inventory Management</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Track cabinet locations and certificate files</div>
+            <a href="certificate_inventory.html" class="btn btn-purple btn-sm" style="margin-top:8px;display:inline-block;text-decoration:none;">📁 Open Inventory</a>
+        `;
+        registryTab.appendChild(inventoryLink);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(addInventoryToUnified, 500);
+});
+</script>

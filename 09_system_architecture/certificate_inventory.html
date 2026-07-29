@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📁 Certificate Inventory & Cabinet Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+            --accent-8: #fb923c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .user-badge {
+            background: rgba(255,255,255,0.05);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+        }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
+        .btn-block { width: 100%; justify-content: center; }
+        .btn-logout {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { 
+            text-align: left; padding: 8px 10px; color: var(--text-secondary); 
+            font-weight: 600; border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; background: var(--bg-primary);
+        }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+        }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        
+        .cabinet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .cabinet-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .cabinet-card:hover {
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+        }
+        .cabinet-card .cabinet-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .cabinet-card .cabinet-location {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .cabinet-card .cabinet-count {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-1);
+            margin: 4px 0;
+        }
+        .cabinet-card .cabinet-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .status-full { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .status-partial { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .status-available { background: rgba(16,185,129,0.2); color: #10b981; }
+        
+        .location-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(99,102,241,0.15);
+            color: #818cf8;
+        }
+        
+        .search-bar {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .search-bar input, .search-bar select {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            flex: 1;
+            min-width: 120px;
+        }
+        .search-bar input:focus, .search-bar select:focus {
+            outline: none; border-color: var(--accent-1);
+        }
+        
+        .barcode {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 10px; font-size: 11px; }
+            .cabinet-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .cabinet-grid { grid-template-columns: 1fr; }
+        }
+        
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--bg-card); border-radius: 12px; padding: 24px;
+            max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
+        .modal-close:hover { color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📁 Certificate Inventory & Cabinet Management</h1>
+            <div class="header-right">
+                <span class="user-badge" id="userDisplay">👤 Loading...</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="btn btn-logout" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="totalCertificates">-</span><div class="label">Total Certificates</div></div>
+            <div class="stat-card"><span class="icon">📁</span><span class="number" id="totalCabinets">-</span><div class="label">Total Cabinets</div></div>
+            <div class="stat-card"><span class="icon">📂</span><span class="number" id="totalShelves">-</span><div class="label">Total Shelves</div></div>
+            <div class="stat-card"><span class="icon">📦</span><span class="number" id="totalFolders">-</span><div class="label">Total Folders</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="storedCerts">-</span><div class="label">Stored</div></div>
+            <div class="stat-card"><span class="icon">❌</span><span class="number" id="missingCerts">-</span><div class="label">Missing</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="cabinets" onclick="switchTab('cabinets')">📁 Cabinets</button>
+            <button class="tab" data-tab="inventory" onclick="switchTab('inventory')">📋 Inventory</button>
+            <button class="tab" data-tab="search" onclick="switchTab('search')">🔍 Search</button>
+            <button class="tab" data-tab="reports" onclick="switchTab('reports')">📊 Reports</button>
+        </div>
+
+        <!-- ===== TAB: CABINETS ===== -->
+        <div id="tab-cabinets" class="tab-content">
+            <div class="card">
+                <div class="card-title">📁 Cabinet Management</div>
+                <div class="flex">
+                    <input class="form-control" type="text" placeholder="Cabinet Name" style="flex:1;" id="cabinetName">
+                    <input class="form-control" type="text" placeholder="Location (e.g., Room 101)" style="flex:1;" id="cabinetLocation">
+                    <input class="form-control" type="number" placeholder="Shelves" style="width:100px;" id="cabinetShelves" value="5">
+                    <button class="btn btn-success" onclick="addCabinet()">➕ Add Cabinet</button>
+                </div>
+                <div id="cabinetResult" class="result-box"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📁 Cabinet Overview <span class="sub" id="cabinetCount">0 cabinets</span></div>
+                <div class="cabinet-grid" id="cabinetGrid"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: INVENTORY ===== -->
+        <div id="tab-inventory" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📦 Manage Certificate Inventory</div>
+                <div class="grid-2">
+                    <div>
+                        <div class="form-group"><label>Certificate Number</label><input class="form-control" type="text" id="invCertNumber" placeholder="e.g., CERT-2026-001"></div>
+                        <div class="form-group"><label>Student Name</label><input class="form-control" type="text" id="invStudentName" placeholder="Student name"></div>
+                    </div>
+                    <div>
+                        <div class="form-group"><label>Cabinet</label><select class="form-control" id="invCabinet"><option value="">Select Cabinet</option></select></div>
+                        <div class="form-group"><label>Shelf</label><input class="form-control" type="text" id="invShelf" placeholder="e.g., Shelf 3"></div>
+                        <div class="form-group"><label>Folder</label><input class="form-control" type="text" id="invFolder" placeholder="e.g., Folder A"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addInventory()">📦 Add to Inventory</button>
+                <div id="inventoryResult" class="result-box"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Current Inventory <span class="sub" id="inventoryCount">0 items</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Certificate Number</th>
+                                <th>Student Name</th>
+                                <th>Cabinet</th>
+                                <th>Shelf</th>
+                                <th>Folder</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: SEARCH ===== -->
+        <div id="tab-search" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🔍 Search Certificate Location</div>
+                <div class="search-bar">
+                    <input type="text" placeholder="Certificate Number" id="searchCert">
+                    <input type="text" placeholder="Student Name" id="searchStudent">
+                    <select id="searchCabinet"><option value="">All Cabinets</option></select>
+                    <button class="btn btn-primary" onclick="searchLocation()">🔍 Search</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">🗑️ Clear</button>
+                </div>
+                <div id="searchResult" class="result-box"></div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REPORTS ===== -->
+        <div id="tab-reports" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📊 Inventory Reports</div>
+                <div class="grid-3">
+                    <button class="btn btn-primary btn-block" onclick="generateCabinetReport()">📁 Cabinet Report</button>
+                    <button class="btn btn-success btn-block" onclick="generateInventoryReport()">📋 Inventory Report</button>
+                    <button class="btn btn-purple btn-block" onclick="generateMissingReport()">❌ Missing Report</button>
+                </div>
+                <div id="reportContent" style="margin-top:12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        let cabinets = [];
+        let inventory = [];
+        let nextId = 1;
+
+        // ===== SAMPLE DATA =====
+        function initSampleData() {
+            cabinets = [
+                { id: 1, name: 'Cabinet A', location: 'Room 101, Section 1', shelves: 5, items: [] },
+                { id: 2, name: 'Cabinet B', location: 'Room 102, Section 2', shelves: 4, items: [] },
+                { id: 3, name: 'Cabinet C', location: 'Room 103, Section 3', shelves: 6, items: [] },
+            ];
+
+            inventory = [
+                { id: 1, cert_number: 'CERT-2026-001', student_name: 'John Doe', cabinet: 'Cabinet A', shelf: 'Shelf 1', folder: 'Folder A1', status: 'Stored' },
+                { id: 2, cert_number: 'CERT-2026-002', student_name: 'Jane Smith', cabinet: 'Cabinet A', shelf: 'Shelf 1', folder: 'Folder A2', status: 'Stored' },
+                { id: 3, cert_number: 'CERT-2026-003', student_name: 'Bob Johnson', cabinet: 'Cabinet B', shelf: 'Shelf 2', folder: 'Folder B1', status: 'Stored' },
+                { id: 4, cert_number: 'CERT-2026-004', student_name: 'Alice Brown', cabinet: 'Cabinet B', shelf: 'Shelf 2', folder: 'Folder B2', status: 'Missing' },
+                { id: 5, cert_number: 'CERT-2026-005', student_name: 'Charlie Davis', cabinet: 'Cabinet C', shelf: 'Shelf 3', folder: 'Folder C1', status: 'Stored' },
+            ];
+            nextId = 6;
+            updateCabinetSelects();
+            renderAll();
+        }
+
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function updateCabinetSelects() {
+            const selects = ['invCabinet', 'searchCabinet'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    const currentVal = select.value;
+                    select.innerHTML = '<option value="">Select Cabinet</option>';
+                    cabinets.forEach(c => {
+                        select.innerHTML += `<option value="${c.name}">${c.name} (${c.location})</option>`;
+                    });
+                    if (currentVal) select.value = currentVal;
+                }
+            });
+        }
+
+        function renderCabinets() {
+            const grid = document.getElementById('cabinetGrid');
+            document.getElementById('cabinetCount').textContent = `${cabinets.length} cabinets`;
+
+            grid.innerHTML = cabinets.map(c => {
+                const count = inventory.filter(i => i.cabinet === c.name).length;
+                const status = count === 0 ? 'available' : count < 10 ? 'partial' : 'full';
+                const statusText = status === 'available' ? '🟢 Available' : status === 'partial' ? '🟡 Partial' : '🔴 Full';
+                
+                return `
+                    <div class="cabinet-card" onclick="viewCabinet('${c.name}')">
+                        <div class="cabinet-name">📁 ${c.name}</div>
+                        <div class="cabinet-location">📍 ${c.location}</div>
+                        <div class="cabinet-count">${count}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Certificates</div>
+                        <div class="cabinet-status status-${status}">${statusText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderInventory() {
+            const tbody = document.getElementById('inventoryTable');
+            document.getElementById('inventoryCount').textContent = `${inventory.length} items`;
+
+            tbody.innerHTML = inventory.map(i => `
+                <tr>
+                    <td><span class="barcode">${i.cert_number}</span></td>
+                    <td>${i.student_name}</td>
+                    <td>${i.cabinet}</td>
+                    <td>${i.shelf}</td>
+                    <td>${i.folder}</td>
+                    <td><span class="status-${i.status === 'Stored' ? 'success' : 'danger'}" style="font-weight:600;">${i.status}</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editInventory(${i.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInventory(${i.id})">🗑️</button>
+                        <button class="btn btn-info btn-sm" onclick="viewLocation('${i.cert_number}')">📍</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAll() {
+            renderCabinets();
+            renderInventory();
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = inventory.length;
+            const stored = inventory.filter(i => i.status === 'Stored').length;
+            const missing = inventory.filter(i => i.status === 'Missing').length;
+            document.getElementById('totalCertificates').textContent = total;
+            document.getElementById('totalCabinets').textContent = cabinets.length;
+            document.getElementById('totalShelves').textContent = cabinets.reduce((sum, c) => sum + c.shelves, 0);
+            document.getElementById('totalFolders').textContent = inventory.length;
+            document.getElementById('storedCerts').textContent = stored;
+            document.getElementById('missingCerts').textContent = missing;
+        }
+
+        function addCabinet() {
+            const name = document.getElementById('cabinetName').value.trim();
+            const location = document.getElementById('cabinetLocation').value.trim();
+            const shelves = parseInt(document.getElementById('cabinetShelves').value) || 5;
+            const result = document.getElementById('cabinetResult');
+
+            if (!name || !location) {
+                result.className = 'result-box show error';
+                result.textContent = '⚠️ Please enter cabinet name and location';
+                return;
+            }
+
+            cabinets.push({ id: nextId++, name, location, shelves, items: [] });
+            updateCabinetSelects();
+            renderAll();
+            document.getElementById('cabinetName').value = '';
+            document.getElementById('cabinetLocation').value = '';
+
+            result.className = 'result-box show success';
+            result.textContent = `✅ Cabinet "${name}" added successfully!`;
+            setTimeout(() => result.className = 'result-box', 3000);
+        }
+
+        function addInventory() {
+            const certNumber = document.getElementById('invCertNumber').value.trim();
+            const studentName = document.getElementById('invStudentName').value.trim();
+            const cabinet = document.getElementById('invCabinet').value;
+            const shelf = document.getElementById('invShelf').value.trim();
+            const folder = document.getElementById('invFolder').value.trim();
+            const result = document.getElementById('inventoryResult');
+
+            if (!certNumber || !studentName || !cabinet || !shelf || !folder) {
+                result.className = 'result-box show error';
+                result.textContent = '⚠️ Please fill in all fields';
+                return;
+            }
+
+            inventory.push({
+                id: nextId++,
+                cert_number: certNumber,
+                student_name: studentName,
+                cabinet: cabinet,
+                shelf: shelf,
+                folder: folder,
+                status: 'Stored'
+            });
+
+            renderAll();
+            document.getElementById('invCertNumber').value = '';
+            document.getElementById('invStudentName').value = '';
+            document.getElementById('invShelf').value = '';
+            document.getElementById('invFolder').value = '';
+
+            result.className = 'result-box show success';
+            result.textContent = `✅ Certificate ${certNumber} added to inventory!`;
+            setTimeout(() => result.className = 'result-box', 3000);
+        }
+
+        function deleteInventory(id) {
+            if (confirm('Are you sure you want to remove this certificate from inventory?')) {
+                inventory = inventory.filter(i => i.id !== id);
+                renderAll();
+                showResult('inventoryResult', 'success', '🗑️ Certificate removed from inventory');
+            }
+        }
+
+        function editInventory(id) {
+            const item = inventory.find(i => i.id === id);
+            if (item) {
+                const newStatus = prompt('Enter new status (Stored/Missing):', item.status);
+                if (newStatus && ['Stored', 'Missing'].includes(newStatus)) {
+                    item.status = newStatus;
+                    renderAll();
+                    showResult('inventoryResult', 'success', `✅ Status updated to ${newStatus}`);
+                }
+            }
+        }
+
+        function viewLocation(certNumber) {
+            const item = inventory.find(i => i.cert_number === certNumber);
+            if (item) {
+                alert(`📍 Certificate Location:\n\nCertificate: ${item.cert_number}\nStudent: ${item.student_name}\nCabinet: ${item.cabinet}\nShelf: ${item.shelf}\nFolder: ${item.folder}\nStatus: ${item.status}`);
+            } else {
+                showResult('searchResult', 'error', '❌ Certificate not found');
+            }
+        }
+
+        function searchLocation() {
+            const cert = document.getElementById('searchCert').value.trim().toUpperCase();
+            const student = document.getElementById('searchStudent').value.trim().toLowerCase();
+            const cabinet = document.getElementById('searchCabinet').value;
+            const resultDiv = document.getElementById('searchResult');
+            const resultsDiv = document.getElementById('searchResults');
+
+            let results = inventory;
+
+            if (cert) results = results.filter(i => i.cert_number.includes(cert));
+            if (student) results = results.filter(i => i.student_name.toLowerCase().includes(student));
+            if (cabinet) results = results.filter(i => i.cabinet === cabinet);
+
+            if (results.length === 0) {
+                resultDiv.className = 'result-box show warning';
+                resultDiv.textContent = '🔍 No certificates found matching your search';
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            resultDiv.className = 'result-box show success';
+            resultDiv.textContent = `✅ Found ${results.length} certificate(s)`;
+
+            resultsDiv.innerHTML = `
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Certificate</th>
+                                <th>Student</th>
+                                <th>Cabinet</th>
+                                <th>Shelf</th>
+                                <th>Folder</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${results.map(i => `
+                                <tr>
+                                    <td><span class="barcode">${i.cert_number}</span></td>
+                                    <td>${i.student_name}</td>
+                                    <td>${i.cabinet}</td>
+                                    <td>${i.shelf}</td>
+                                    <td>${i.folder}</td>
+                                    <td><span class="status-${i.status === 'Stored' ? 'success' : 'danger'}">${i.status}</span></td>
+                                    <td><button class="btn btn-info btn-sm" onclick="viewLocation('${i.cert_number}')">📍</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function clearSearch() {
+            document.getElementById('searchCert').value = '';
+            document.getElementById('searchStudent').value = '';
+            document.getElementById('searchCabinet').value = '';
+            document.getElementById('searchResult').className = 'result-box';
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        function generateCabinetReport() {
+            const content = document.getElementById('reportContent');
+            let html = '<div style="background:rgba(0,0,0,0.2);padding:16px;border-radius:8px;">';
+            html += '<h3 style="margin-bottom:12px;">📁 Cabinet Report</h3>';
+            
+            cabinets.forEach(c => {
+                const count = inventory.filter(i => i.cabinet === c.name).length;
+                html += `
+                    <div style="padding:8px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                        <span>📁 ${c.name}</span>
+                        <span>📍 ${c.location}</span>
+                        <span>📄 ${count} certificates</span>
+                        <span>📊 ${c.shelves} shelves</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function generateInventoryReport() {
+            const content = document.getElementById('reportContent');
+            let html = '<div style="background:rgba(0,0,0,0.2);padding:16px;border-radius:8px;">';
+            html += '<h3 style="margin-bottom:12px;">📋 Inventory Report</h3>';
+            
+            const sorted = [...inventory].sort((a, b) => a.cabinet.localeCompare(b.cabinet));
+            sorted.forEach(i => {
+                html += `
+                    <div style="padding:6px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;font-size:13px;">
+                        <span><span class="barcode">${i.cert_number}</span></span>
+                        <span>${i.student_name}</span>
+                        <span>📁 ${i.cabinet}</span>
+                        <span>${i.shelf} / ${i.folder}</span>
+                        <span style="color:${i.status === 'Stored' ? '#10b981' : '#ef4444'};">${i.status}</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function generateMissingReport() {
+            const content = document.getElementById('reportContent');
+            const missing = inventory.filter(i => i.status === 'Missing');
+            
+            if (missing.length === 0) {
+                content.innerHTML = '<div style="background:rgba(16,185,129,0.1);padding:16px;border-radius:8px;color:#10b981;">✅ No missing certificates found!</div>';
+                return;
+            }
+
+            let html = '<div style="background:rgba(239,68,68,0.1);padding:16px;border-radius:8px;">';
+            html += '<h3 style="margin-bottom:12px;color:#ef4444;">❌ Missing Certificates</h3>';
+            
+            missing.forEach(i => {
+                html += `
+                    <div style="padding:6px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                        <span><span class="barcode">${i.cert_number}</span></span>
+                        <span>${i.student_name}</span>
+                        <span>Last known: 📁 ${i.cabinet}</span>
+                        <button class="btn btn-warning btn-sm" onclick="markFound('${i.cert_number}')">🔍 Mark Found</button>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function markFound(certNumber) {
+            const item = inventory.find(i => i.cert_number === certNumber);
+            if (item) {
+                item.status = 'Stored';
+                renderAll();
+                showResult('inventoryResult', 'success', `✅ ${certNumber} marked as found!`);
+                generateMissingReport();
+            }
+        }
+
+        function viewCabinet(name) {
+            const cabinet = cabinets.find(c => c.name === name);
+            if (cabinet) {
+                const items = inventory.filter(i => i.cabinet === name);
+                alert(`📁 Cabinet: ${cabinet.name}\n📍 Location: ${cabinet.location}\n📊 Shelves: ${cabinet.shelves}\n📄 Certificates: ${items.length}\n\n${items.map(i => `  • ${i.cert_number} - ${i.student_name} (${i.shelf}/${i.folder})`).join('\n') || '  (Empty)'}`);
+            }
+        }
+
+        function showResult(id, type, message) {
+            const resultDiv = document.getElementById(id);
+            resultDiv.className = `result-box show ${type}`;
+            resultDiv.textContent = message;
+            setTimeout(() => resultDiv.className = 'result-box', 4000);
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            renderAll();
+            showResult('cabinetResult', 'info', '🔄 Refreshed');
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            initSampleData();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        init();
+    </script>
+</body>
+</html>

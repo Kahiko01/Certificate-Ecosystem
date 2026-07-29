@@ -39,6 +39,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+                <a href="certificate_inventory.html" class="btn btn-purple btn-sm" style="text-decoration:none;">📁 Inventory</a>
         .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .badge {
             padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
@@ -201,6 +202,7 @@
         <!-- Header -->
         <div class="header">
             <h1>📋 Registry Dashboard</h1>
+                <a href="certificate_inventory.html" class="btn btn-purple btn-sm" style="text-decoration:none;">📁 Inventory</a>
             <div class="header-right">
                 <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
                 <span class="badge badge-online">● Online</span>
@@ -840,5 +842,30 @@ function updateCertificateButtons() {
 // Run on load
 document.addEventListener('DOMContentLoaded', function() {
     updateCertificateButtons();
+});
+</script>
+<script>
+// Add inventory link to registry dashboard
+function addInventoryLink() {
+    const quickActions = document.querySelector('.grid-3');
+    if (quickActions) {
+        const inventoryCard = document.createElement('div');
+        inventoryCard.className = 'card';
+        inventoryCard.style.cssText = 'grid-column: span 1;';
+        inventoryCard.innerHTML = `
+            <div style="text-align:center;padding:10px;">
+                <span style="font-size:32px;">📁</span>
+                <div style="font-weight:600;margin-top:8px;">Certificate Inventory</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Manage cabinets & file tracking</div>
+                <a href="certificate_inventory.html" class="btn btn-purple btn-sm" style="margin-top:8px;display:inline-block;text-decoration:none;">📁 Go to Inventory</a>
+            </div>
+        `;
+        quickActions.appendChild(inventoryCard);
+    }
+}
+
+// Call on load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(addInventoryLink, 500);
 });
 </script>

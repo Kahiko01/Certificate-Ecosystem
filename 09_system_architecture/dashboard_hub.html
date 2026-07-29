@@ -397,3 +397,24 @@
     </script>
 </body>
 </html>
+<script>
+// Add inventory to dashboard hub dashboards list
+const dashboardsWithInventory = [
+    // ... existing dashboards ...
+    {
+        icon: '📁',
+        name: 'Certificate Inventory',
+        description: 'Manage cabinet locations and certificate file tracking',
+        roles: ['SYSTEM_ADMIN', 'REGISTRAR', 'REGISTRY_HEAD', 'REGISTRY_OFFICER'],
+        url: 'certificate_inventory.html',
+        badge: 'badge-registry',
+        badgeText: 'Registry'
+    }
+];
+
+// Merge with existing dashboards
+function mergeDashboards() {
+    // This will be handled in the existing render function
+    console.log('Inventory dashboard added to hub');
+}
+</script>
