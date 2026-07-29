@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Advanced Reporting & Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255,255,255,0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #06b6d4;
+            --accent-3: #10b981;
+            --accent-4: #f59e0b;
+            --accent-5: #ef4444;
+            --accent-6: #8b5cf6;
+            --accent-7: #ec4899;
+            --accent-8: #fb923c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+            color: white;
+        }
+        .btn-primary { background: var(--accent-1); }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn-success { background: var(--accent-3); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--accent-4); color: #0f172a; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-5); }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-purple { background: var(--accent-6); }
+        .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-pink { background: var(--accent-7); }
+        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
+        .btn-orange { background: var(--accent-8); }
+        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
+        .btn-block { width: 100%; justify-content: center; }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: #e2e8f0;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { 
+            text-align: left; padding: 8px 10px; color: var(--text-secondary); 
+            font-weight: 600; border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; background: var(--bg-primary);
+        }
+        td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+        }
+        .form-control {
+            width: 100%; padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white; font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: #64748b; }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background: #1e293b; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .mb-8 { margin-bottom: 8px; }
+        .text-muted { color: var(--text-secondary); font-size: 11px; }
+        .text-success { color: var(--accent-3); }
+        .text-danger { color: var(--accent-5); }
+        .text-warning { color: var(--accent-4); }
+        .result-box {
+            margin-top: 8px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; display: none; line-height: 1.5;
+        }
+        .result-box.show { display: block; }
+        .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+        .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
+        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        .tab-bar {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 6px 16px; border-radius: 6px; border: none; background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 12px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--accent-1); color: white; }
+        .hidden { display: none; }
+        .chart-container { position: relative; height: 200px; }
+        .report-preview {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .export-buttons {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .filter-section { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Advanced Reporting & Analytics</h1>
+            <div class="header-right">
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
+                <span class="text-muted" id="lastUpdate"></span>
+                <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><span class="icon">📜</span><span class="number" id="totalCerts">-</span><div class="label">Total Certificates</div></div>
+            <div class="stat-card"><span class="icon">✅</span><span class="number" id="issuedCerts">-</span><div class="label">Issued</div></div>
+            <div class="stat-card"><span class="icon">📊</span><span class="number" id="clearanceRate">-</span><div class="label">Clearance Rate</div></div>
+            <div class="stat-card"><span class="icon">🏛️</span><span class="number" id="totalDepts">-</span><div class="label">Departments</div></div>
+            <div class="stat-card"><span class="icon">📈</span><span class="number" id="trend">-</span><div class="label">Monthly Trend</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" data-tab="reports" onclick="switchTab('reports')">📋 Reports</button>
+            <button class="tab" data-tab="builder" onclick="switchTab('builder')">🛠️ Custom Report</button>
+            <button class="tab" data-tab="trends" onclick="switchTab('trends')">📈 Trends</button>
+            <button class="tab" data-tab="export" onclick="switchTab('export')">📥 Export</button>
+        </div>
+
+        <!-- ===== TAB: DASHBOARD ===== -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Certificate Status Distribution</div>
+                    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Monthly Issuance Trend</div>
+                    <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🏛️ Department Performance</div>
+                    <div class="chart-container"><canvas id="deptChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎓 Clearance Progress</div>
+                    <div class="chart-container"><canvas id="clearanceChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REPORTS ===== -->
+        <div id="tab-reports" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📋 Generated Reports</div>
+                <div id="reportList">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Report Name</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Generated By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: CUSTOM REPORT ===== -->
+        <div id="tab-builder" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🛠️ Custom Report Builder</div>
+                <div class="filter-section">
+                    <div class="form-group" style="margin:0;">
+                        <label>Date Range</label>
+                        <input class="form-control" type="date" id="reportStartDate" value="2026-01-01">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>To</label>
+                        <input class="form-control" type="date" id="reportEndDate" value="2026-12-31">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Department</label>
+                        <select class="form-control" id="reportDept">
+                            <option value="all">All Departments</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Registry">Registry</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Dean">Dean</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Status</label>
+                        <select class="form-control" id="reportStatus">
+                            <option value="all">All Status</option>
+                            <option value="issued">Issued</option>
+                            <option value="pending">Pending</option>
+                            <option value="revoked">Revoked</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex">
+                    <button class="btn btn-primary" onclick="generateCustomReport()">📊 Generate Report</button>
+                    <button class="btn btn-success" onclick="exportCustomReport()">📥 Export Report</button>
+                    <button class="btn btn-warning" onclick="exportCustomExcel()">📊 Export Excel</button>
+                    <button class="btn btn-danger" onclick="exportCustomPDF()">📄 Export PDF</button>
+                </div>
+                <div id="customReportResult" class="result-box"></div>
+                <div id="customReportPreview" class="report-preview" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: TRENDS ===== -->
+        <div id="tab-trends" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📈 Certificate Issuance Trends</div>
+                <div class="grid-2">
+                    <div class="form-group"><label>Year</label><select class="form-control" id="trendYear"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option></select></div>
+                    <div class="form-group"><label>Metric</label><select class="form-control" id="trendMetric"><option value="certificates">Certificates</option><option value="clearance">Clearance Rate</option><option value="students">Students</option></select></div>
+                </div>
+                <div class="chart-container" style="height:300px;"><canvas id="trendsChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: EXPORT ===== -->
+        <div id="tab-export" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📥 Export Reports</div>
+                <div class="grid-3">
+                    <button class="btn btn-success btn-block" onclick="exportPDF()">📄 Export PDF</button>
+                    <button class="btn btn-primary btn-block" onclick="exportExcel()">📊 Export Excel</button>
+                    <button class="btn btn-warning btn-block" onclick="exportCSV()">📋 Export CSV</button>
+                </div>
+                <div id="exportResult" class="result-box"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Report Format Options</div>
+                <div class="grid-3">
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <span style="font-size:24px;">📄</span>
+                        <div style="font-weight:600;margin-top:4px;">PDF</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Printable reports</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <span style="font-size:24px;">📊</span>
+                        <div style="font-weight:600;margin-top:4px;">Excel</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Data analysis</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;text-align:center;">
+                        <span style="font-size:24px;">📋</span>
+                        <div style="font-weight:600;margin-top:4px;">CSV</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Database import</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIG =====
+        let charts = {};
+
+        // ===== SAMPLE DATA =====
+        const reportsData = [
+            { id: 1, name: 'Certificate Issuance Report', type: 'PDF', date: '2026-07-15', by: 'Registrar' },
+            { id: 2, name: 'Department Performance Q3', type: 'Excel', date: '2026-07-10', by: 'Dean' },
+            { id: 3, name: 'Student Clearance Summary', type: 'CSV', date: '2026-07-05', by: 'Registry' },
+            { id: 4, name: 'Annual Certificate Report', type: 'PDF', date: '2026-06-30', by: 'System Admin' },
+            { id: 5, name: 'Finance Clearance Report', type: 'Excel', date: '2026-06-25', by: 'Finance' },
+        ];
+
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function renderReportTable() {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = reportsData.map(r => `
+                <tr>
+                    <td><strong>${r.name}</strong></td>
+                    <td><span class="badge badge-info">${r.type}</span></td>
+                    <td>${r.date}</td>
+                    <td>${r.by}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewReport(${r.id})">👁️</button>
+                        <button class="btn btn-success btn-sm" onclick="downloadReport(${r.id})">📥</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewReport(id) {
+            const report = reportsData.find(r => r.id === id);
+            alert(`👁️ Viewing report: ${report.name}\nType: ${report.type}\nDate: ${report.date}\nGenerated by: ${report.by}`);
+        }
+
+        function downloadReport(id) {
+            const report = reportsData.find(r => r.id === id);
+            alert(`📥 Downloading ${report.name} as ${report.type}...`);
+        }
+
+        // ===== CHARTS =====
+        function loadCharts() {
+            // Status Chart
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            if (charts.status) charts.status.destroy();
+            charts.status = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Issued', 'Pending', 'Revoked', 'Draft'],
+                    datasets: [{
+                        data: [184, 42, 8, 12],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true } } },
+                    cutout: '65%'
+                }
+            });
+
+            // Trend Chart
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            if (charts.trend) charts.trend.destroy();
+            charts.trend = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Certificates Issued',
+                        data: [12, 18, 15, 22, 28, 32, 45, 38, 42, 50, 48, 55],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Department Performance Chart
+            const ctx3 = document.getElementById('deptChart').getContext('2d');
+            if (charts.dept) charts.dept.destroy();
+            charts.dept = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: ['Finance', 'Registry', 'Academic', 'Dean', 'Discipline'],
+                    datasets: [
+                        {
+                            label: 'Clearances',
+                            data: [85, 92, 78, 88, 72],
+                            backgroundColor: ['#818cf8', '#34d399', '#f59e0b', '#f472b6', '#fb923c'],
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Clearance Progress Chart
+            const ctx4 = document.getElementById('clearanceChart').getContext('2d');
+            if (charts.clearance) charts.clearance.destroy();
+            charts.clearance = new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: ['Finance', 'Dean', 'Accommodation', 'Discipline', 'Registrar'],
+                    datasets: [
+                        {
+                            label: 'Cleared',
+                            data: [85, 78, 72, 68, 65],
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Pending',
+                            data: [15, 22, 28, 32, 35],
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== TRENDS CHART =====
+        function loadTrendsChart() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            if (charts.trends) charts.trends.destroy();
+            charts.trends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Certificates',
+                            data: [12, 18, 25, 32],
+                            borderColor: '#6366f1',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Clearance Rate',
+                            data: [65, 72, 78, 85],
+                            borderColor: '#10b981',
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { padding: 12, usePointStyle: true } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== UPDATE STATS =====
+        function updateStats() {
+            document.getElementById('totalCerts').textContent = '246';
+            document.getElementById('issuedCerts').textContent = '184';
+            document.getElementById('clearanceRate').textContent = '78%';
+            document.getElementById('totalDepts').textContent = '5';
+            document.getElementById('trend').textContent = '↑ 12%';
+        }
+
+        // ===== CUSTOM REPORT =====
+        function generateCustomReport() {
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            const dept = document.getElementById('reportDept').value;
+            const status = document.getElementById('reportStatus').value;
+
+            const resultDiv = document.getElementById('customReportResult');
+            const previewDiv = document.getElementById('customReportPreview');
+
+            resultDiv.className = 'result-box show info';
+            resultDiv.textContent = '⏳ Generating report...';
+
+            setTimeout(() => {
+                resultDiv.className = 'result-box show success';
+                resultDiv.textContent = '✅ Report generated successfully!';
+
+                previewDiv.style.display = 'block';
+                previewDiv.innerHTML = `
+                    <div style="font-weight:600;color:var(--text-primary);margin-bottom:8px;">
+                        📊 Custom Report Preview
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;">
+                        <div>📅 Date Range: ${startDate} to ${endDate}</div>
+                        <div>🏛️ Department: ${dept === 'all' ? 'All' : dept}</div>
+                        <div>📊 Status: ${status === 'all' ? 'All' : status}</div>
+                        <div>📄 Total Records: 24</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3);padding:8px;border-radius:4px;font-size:11px;max-height:200px;overflow-y:auto;">
+                        ${Array(10).fill(0).map((_, i) => `
+                            <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;">
+                                <span>Student ${i+1}</span>
+                                <span>CERT-2026-${String(i+1).padStart(3,'0')}</span>
+                                <span style="color:#10b981;">Issued</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }, 1500);
+        }
+
+        function exportCustomReport() {
+            showResult('customReportResult', 'success', '📥 Report exported successfully!');
+        }
+
+        function exportCustomExcel() {
+            showResult('customReportResult', 'success', '📊 Excel file exported!');
+        }
+
+        function exportCustomPDF() {
+            showResult('customReportResult', 'success', '📄 PDF file exported!');
+        }
+
+        function showResult(id, type, message) {
+            const resultDiv = document.getElementById(id);
+            resultDiv.className = `result-box show ${type}`;
+            resultDiv.textContent = message;
+            setTimeout(() => resultDiv.className = 'result-box', 4000);
+        }
+
+        // ===== EXPORT FUNCTIONS =====
+        function exportPDF() {
+            showResult('exportResult', 'success', '📄 PDF report exported successfully!');
+        }
+
+        function exportExcel() {
+            showResult('exportResult', 'success', '📊 Excel report exported successfully!');
+        }
+
+        function exportCSV() {
+            showResult('exportResult', 'success', '📋 CSV report exported successfully!');
+        }
+
+        // ===== INIT =====
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            updateStats();
+            loadCharts();
+            loadTrendsChart();
+            renderReportTable();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
+
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            updateStats();
+            loadCharts();
+            renderReportTable();
+            showResult('customReportResult', 'info', '🔄 Refreshed');
+        }
+
+        init();
+    </script>
+</body>
+</html>

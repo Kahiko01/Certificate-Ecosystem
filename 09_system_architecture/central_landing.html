@@ -96,6 +96,12 @@
         
         /* Quick Access */
         .quick-access {
+            <a href="advanced_reporting.html" class="quick-card">
+                <span class="icon">📊</span>
+                <div class="name">Advanced Reporting</div>
+                <div class="desc">Analytics, reports & trends</div>
+                <span class="badge badge-all">Reports</span>
+            </a>
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 12px; margin-bottom: 20px;
         }
@@ -173,10 +179,22 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .header { flex-direction: column; align-items: flex-start; }
             .quick-access { grid-template-columns: 1fr 1fr; }
+            <a href="advanced_reporting.html" class="quick-card">
+                <span class="icon">📊</span>
+                <div class="name">Advanced Reporting</div>
+                <div class="desc">Analytics, reports & trends</div>
+                <span class="badge badge-all">Reports</span>
+            </a>
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
             .quick-access { grid-template-columns: 1fr; }
+            <a href="advanced_reporting.html" class="quick-card">
+                <span class="icon">📊</span>
+                <div class="name">Advanced Reporting</div>
+                <div class="desc">Analytics, reports & trends</div>
+                <span class="badge badge-all">Reports</span>
+            </a>
         }
         
         .search-bar {
@@ -220,6 +238,12 @@
 
         <!-- Quick Access -->
         <div class="quick-access" id="quickAccess">
+            <a href="advanced_reporting.html" class="quick-card">
+                <span class="icon">📊</span>
+                <div class="name">Advanced Reporting</div>
+                <div class="desc">Analytics, reports & trends</div>
+                <span class="badge badge-all">Reports</span>
+            </a>
             <!-- Quick access cards will be loaded based on role -->
         </div>
 
@@ -484,3 +508,11 @@
     </script>
 </body>
 </html>
+<!-- Add to quick access section -->
+<script>
+// Add inventory dashboard to dashboards list
+const allDashboards = [
+    // ... existing dashboards ...
+    { id: 'inventory', icon: '📁', name: 'Certificate Inventory', desc: 'Cabinet management & file tracking', url: 'certificate_inventory.html', badge: 'badge-registry', roles: ['SYSTEM_ADMIN', 'REGISTRAR', 'REGISTRY_HEAD', 'REGISTRY_OFFICER'] },
+];
+</script>
