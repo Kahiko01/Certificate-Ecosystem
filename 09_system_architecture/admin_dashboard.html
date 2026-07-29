@@ -24,7 +24,7 @@
         .header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e0e7ff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
                 <a href="telemetry_system.html" class="btn btn-purple btn-sm" style="text-decoration:none;">📊 Telemetry</a>
-                <a href="audit_monitoring_system.html" class="btn btn-purple btn-sm" style="text-decoration:none;">🔍 Audit</a>
+                <a href="monitoring_command_center.html" class="btn btn-purple btn-sm" style="text-decoration:none;">🔍 Audit</a>
                 <a href="department_inventory.html" class="btn btn-primary btn-sm" style="text-decoration:none;">📁 Inventory</a>
         .nav-btn {
             padding: 8px 16px; border: none; border-radius: 8px;
@@ -84,11 +84,11 @@
             <h1>⚙️ Admin Dashboard</h1>
             <div class="header-right">
                 <a href="telemetry_system.html" class="btn btn-purple btn-sm" style="text-decoration:none;">📊 Telemetry</a>
-                <a href="audit_monitoring_system.html" class="btn btn-purple btn-sm" style="text-decoration:none;">🔍 Audit</a>
+                <a href="monitoring_command_center.html" class="btn btn-purple btn-sm" style="text-decoration:none;">🔍 Audit</a>
                 <a href="department_inventory.html" class="btn btn-primary btn-sm" style="text-decoration:none;">📁 Inventory</a>
                 <span class="user-badge" id="userBadge">👤 Admin</span>
                 <a href="dashboard_hub.html" class="nav-btn btn-primary">🏛️ Hub</a>
-                <a href="audit_monitoring_system.html" class="nav-btn btn-primary">📊 Audit</a>
+                <a href="monitoring_command_center.html" class="nav-btn btn-primary">📊 Audit</a>
             </div>
         </div>
 
@@ -158,7 +158,7 @@
 
         function manageUsers() { alert('👤 User Management page will open here'); }
         function systemSettings() { alert('⚙️ System Settings page will open here'); }
-        function viewAudit() { window.location.href = 'audit_monitoring_system.html'; }
+        function viewAudit() { window.location.href = 'monitoring_command_center.html'; }
         function securitySettings() { alert('🔐 Security Settings page will open here'); }
         function viewReports() { alert('📈 Reports page will open here'); }
         function monitorSystem() { alert('🔍 Monitoring page will open here'); }
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', loadAdminInventoryStats);
 <div class="card">
     <div class="card-title">🔍 Audit & Monitoring</div>
     <div class="grid-3">
-        <a href="audit_monitoring_system.html" class="btn btn-primary btn-block" style="text-decoration:none;text-align:center;">📊 View Audit Logs</a>
+        <a href="monitoring_command_center.html" class="btn btn-primary btn-block" style="text-decoration:none;text-align:center;">📊 View Audit Logs</a>
         <button class="btn btn-success btn-block" onclick="alert('📈 Generating report...')">📈 Generate Report</button>
         <button class="btn btn-warning btn-block" onclick="alert('📥 Exporting data...')">📥 Export Data</button>
     </div>
