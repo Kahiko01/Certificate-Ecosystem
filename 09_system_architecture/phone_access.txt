@@ -1,0 +1,31 @@
+=========================================
+📱 CERTIFICATE ECOSYSTEM - PHONE ACCESS
+=========================================
+
+🌐 YOUR NETWORK IPs:
+   Ethernet: 10.163.2.215
+   Wi-Fi:    10.163.2.217
+   WSL:      172.26.80.1
+
+📱 USE THIS URL ON YOUR PHONE:
+   http://10.163.2.215:9001
+   OR
+   http://10.163.2.217:9001
+
+🔗 QUICK LINKS:
+   Main:        http://10.163.2.215:9001
+   Login:       http://10.163.2.215:9001/login_with_rbac.html
+   Dashboard:   http://10.163.2.215:9001/dashboard_hub.html
+   Mobile Page: http://10.163.2.215:9001/mobile_access.html
+
+🔑 CREDENTIALS:
+   Admin:      system_admin / admin_hash
+   Registrar:  registrar / default_hash
+   Dean:       dean / default_hash
+   Student:    student1 / default_hash
+
+⚠️  REQUIREMENTS:
+   1. Port forwarding configured (run PowerShell commands)
+   2. Firewall rules added
+   3. Phone on same WiFi network (kabetepoly.ac.ke)
+=========================================

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(30,41,59,0.85);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { font-size: 24px; margin-bottom: 20px; }
+        .ip-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid rgba(99,102,241,0.2);
+        }
+        .ip-box .label { color: #94a3b8; font-size: 12px; }
+        .ip-box .value { font-size: 20px; font-weight: 700; color: #818cf8; font-family: monospace; }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .status-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .status-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>📡 IP Detection</h1>
+        
+        <div class="ip-box">
+            <div class="label">🌐 Your IP (from browser)</div>
+            <div class="value" id="browserIP">Detecting...</div>
+        </div>
+        
+        <div class="ip-box">
+            <div class="label">🖥️ Server IP</div>
+            <div class="value" id="serverIP">Detecting...</div>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <button class="btn" onclick="testConnection()">🔍 Test Connection</button>
+        <button class="btn" onclick="window.location.href='phone_login.html'" style="background: linear-gradient(135deg, #10b981, #059669);">📱 Go to Login</button>
+    </div>
+
+    <script>
+        // Get browser IP (via fetch)
+        async function getBrowserIP() {
+            try {
+                const response = await fetch('http://ip-api.com/json/');
+                const data = await response.json();
+                document.getElementById('browserIP').textContent = data.query || 'Unknown';
+            } catch (e) {
+                document.getElementById('browserIP').textContent = 'Could not detect';
+            }
+        }
+
+        // Get server IP from URL
+        function getServerIP() {
+            const host = window.location.hostname;
+            document.getElementById('serverIP').textContent = host || 'Unknown';
+        }
+
+        // Test connection to auth service
+        async function testConnection() {
+            const status = document.getElementById('status');
+            const host = window.location.hostname;
+            const port = 8001;
+            
+            status.className = 'status status-info';
+            status.textContent = '⏳ Testing connection...';
+            
+            try {
+                const response = await fetch(`http://${host}:${port}/health`, {
+                    signal: AbortSignal.timeout(3000)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    status.className = 'status status-success';
+                    status.textContent = `✅ Auth Service is reachable! (${data.status})`;
+                } else {
+                    status.className = 'status status-error';
+                    status.textContent = '❌ Auth Service responded but with error';
+                }
+            } catch (e) {
+                status.className = 'status status-error';
+                status.textContent = `❌ Cannot reach Auth Service: ${e.message}`;
+            }
+        }
+
+        getBrowserIP();
+        getServerIP();
+    </script>
+</body>
+</html>

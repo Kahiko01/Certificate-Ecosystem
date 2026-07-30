@@ -1,0 +1,43 @@
+#!/bin/bash
+
+echo "========================================="
+echo "🔧 COMPLETE FIX FOR PHONE ACCESS"
+echo "========================================="
+
+WSL_IP=$(hostname -I | awk '{print $1}')
+WIN_IP=$(ip route show default | awk '{print $3}')
+
+echo ""
+echo "📡 Current IPs:"
+echo "   WSL IP: $WSL_IP"
+echo "   Windows IP: $WIN_IP"
+echo ""
+
+echo "📋 COPY AND PASTE THESE COMMANDS IN WINDOWS POWERSHELL (AS ADMINISTRATOR):"
+echo ""
+echo "========================================="
+echo "# Remove old forwarding"
+echo "netsh interface portproxy delete v4tov4 listenport=9001"
+echo "netsh interface portproxy delete v4tov4 listenport=8000"
+echo "netsh interface portproxy delete v4tov4 listenport=8001"
+echo "netsh interface portproxy delete v4tov4 listenport=8002"
+echo ""
+echo "# Add new forwarding with WSL IP: $WSL_IP"
+echo "netsh interface portproxy add v4tov4 listenport=9001 listenaddress=0.0.0.0 connectport=9001 connectaddress=$WSL_IP"
+echo "netsh interface portproxy add v4tov4 listenport=8000 listenaddress=0.0.0.0 connectport=8000 connectaddress=$WSL_IP"
+echo "netsh interface portproxy add v4tov4 listenport=8001 listenaddress=0.0.0.0 connectport=8001 connectaddress=$WSL_IP"
+echo "netsh interface portproxy add v4tov4 listenport=8002 listenaddress=0.0.0.0 connectport=8002 connectaddress=$WSL_IP"
+echo ""
+echo "# Verify"
+echo "netsh interface portproxy show all"
+echo ""
+echo "# Firewall rules"
+echo "Remove-NetFirewallRule -DisplayName 'Certificate Ecosystem*'"
+echo "New-NetFirewallRule -DisplayName 'Certificate Ecosystem 9001' -Direction Inbound -LocalPort 9001 -Protocol TCP -Action Allow"
+echo "New-NetFirewallRule -DisplayName 'Certificate Ecosystem 8000' -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow"
+echo "New-NetFirewallRule -DisplayName 'Certificate Ecosystem 8001' -Direction Inbound -LocalPort 8001 -Protocol TCP -Action Allow"
+echo "New-NetFirewallRule -DisplayName 'Certificate Ecosystem 8002' -Direction Inbound -LocalPort 8002 -Protocol TCP -Action Allow"
+echo "========================================="
+echo ""
+echo "📱 After running, test: http://$WIN_IP:9001"
+echo "========================================="
