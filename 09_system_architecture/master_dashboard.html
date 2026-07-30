@@ -427,7 +427,7 @@
                 <div class="card">
                     <div class="card-title">🔗 API Connection</div>
                     <div class="flex">
-                        <input class="form-control" type="text" id="apiUrlInput" value="http://127.0.0.1:8000" style="flex:1;">
+                        <input class="form-control" type="text" id="apiUrlInput" value="http://172.26.80.1:8000" style="flex:1;">
                         <button class="btn btn-primary" onclick="updateAPI()">Connect</button>
                         <button class="btn btn-secondary" onclick="autoDetectAPI()">Auto</button>
                     </div>
@@ -517,7 +517,7 @@
 
     <script>
         // ===== CONFIGURATION =====
-        let API = localStorage.getItem('apiUrl') || 'http://127.0.0.1:8000';
+        let API = localStorage.getItem('apiUrl') || 'http://172.26.80.1:8000';
         document.getElementById('apiUrlInput').value = API;
         document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('clearanceComments').value = 'Cleared from dashboard';
@@ -547,7 +547,7 @@
 
         // ===== NAVIGATION FUNCTIONS =====
         function openMonitoringDashboard() {
-            window.open('http://localhost:9001/monitoring_dashboard.html', '_blank');
+            window.open('http://localhost:9001/audit_monitoring_system.html', '_blank');
         }
 
         function openLoginMonitoring() {
@@ -566,7 +566,7 @@
 
         // ===== API FUNCTIONS =====
         function autoDetectAPI() {
-            const urls = ['http://127.0.0.1:8000', 'http://localhost:8000', 'http://172.19.0.4:8000'];
+            const urls = ['http://172.26.80.1:8000', 'http://172.26.80.1:8000', 'http://172.19.0.4:8000'];
             let found = false;
             urls.forEach(url => {
                 if (!found) {
@@ -614,7 +614,7 @@
         // ===== CHECK SERVICES =====
         function checkServices() {
             // Check Certificate Service
-            fetch('http://127.0.0.1:8000/health')
+            fetch('http://172.26.80.1:8000/health')
                 .then(r => r.json())
                 .then(() => {
                     document.getElementById('certServiceStatus').textContent = '✅ Online';
@@ -626,7 +626,7 @@
                 });
 
             // Check Auth Service
-            fetch('http://127.0.0.1:8001/')
+            fetch('http://172.26.80.1:8001/')
                 .then(r => r.json())
                 .then(() => {
                     document.getElementById('authServiceStatus').textContent = '✅ Online';
@@ -663,7 +663,7 @@
                 .catch(() => {});
 
             // Load session stats from auth service
-            fetch('http://127.0.0.1:8001/auth/session-stats')
+            fetch('http://172.26.80.1:8001/auth/session-stats')
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('onlineUsers').textContent = data.online_users || 0;
@@ -745,7 +745,7 @@
 
         // ===== ONLINE USERS =====
         function loadOnlineUsers() {
-            fetch('http://127.0.0.1:8001/auth/online-users')
+            fetch('http://172.26.80.1:8001/auth/online-users')
                 .then(r => r.json())
                 .then(data => {
                     const users = data.online_users || [];
@@ -773,7 +773,7 @@
 
             // Also populate online users table in users tab
             const tableContainer = document.getElementById('onlineUsersTable');
-            fetch('http://127.0.0.1:8001/auth/online-users')
+            fetch('http://172.26.80.1:8001/auth/online-users')
                 .then(r => r.json())
                 .then(data => {
                     const users = data.online_users || [];
@@ -1110,7 +1110,7 @@
             const container = document.getElementById('sessionStats');
             container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Loading...</div>';
             
-            fetch('http://127.0.0.1:8001/auth/session-stats')
+            fetch('http://172.26.80.1:8001/auth/session-stats')
                 .then(r => r.json())
                 .then(data => {
                     container.innerHTML = `
@@ -1144,7 +1144,7 @@
             const container = document.getElementById('loginHistoryTable');
             container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Loading...</div>';
             
-            fetch('http://127.0.0.1:8001/auth/session-stats')
+            fetch('http://172.26.80.1:8001/auth/session-stats')
                 .then(r => r.json())
                 .then(data => {
                     // Show sample login history with real data
@@ -1181,8 +1181,8 @@
         function loadSystemStatus() {
             const container = document.getElementById('systemStatus');
             const services = [
-                { name: 'Certificate API', url: 'http://127.0.0.1:8000/health' },
-                { name: 'Auth Service', url: 'http://127.0.0.1:8001/' },
+                { name: 'Certificate API', url: 'http://172.26.80.1:8000/health' },
+                { name: 'Auth Service', url: 'http://172.26.80.1:8001/' },
                 { name: 'Telemetry Service', url: 'http://127.0.0.1:8002/' },
                 { name: 'PostgreSQL', url: 'http://127.0.0.1:5432' },
                 { name: 'Redis', url: 'http://127.0.0.1:6379' }

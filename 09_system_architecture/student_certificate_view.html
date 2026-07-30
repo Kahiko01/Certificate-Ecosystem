@@ -125,7 +125,7 @@
 
     <script>
         const API = 'http://127.0.0.1:8005';
-        const CERT_API = 'http://127.0.0.1:8001';
+        const CERT_API = 'http://172.26.80.1:8001';
 
         function getUser() {
             try {
@@ -261,8 +261,8 @@
         }
 
         function verifyCertificate(code) {
-            alert(`🔍 Verifying certificate with code: ${code}\n\nVerification URL: http://localhost:8000/verify/${code}`);
-            window.open(`http://localhost:8000/verify/${code}`, '_blank');
+            alert(`🔍 Verifying certificate with code: ${code}\n\nVerification URL: http://172.26.80.1:8000/verify/${code}`);
+            window.open(`http://172.26.80.1:8000/verify/${code}`, '_blank');
         }
 
         // Check auth

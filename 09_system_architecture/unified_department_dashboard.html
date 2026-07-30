@@ -62,15 +62,11 @@
         .btn-success:hover { background: #059669; transform: translateY(-2px); }
         .btn-danger { background: var(--accent-5); }
         .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
-        .btn-warning { background: var(--accent-4); color: #0f172a; }
-        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
         .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); }
         .btn-sm { padding: 4px 12px; font-size: 12px; }
         .btn-purple { background: var(--accent-6); }
         .btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
-        .btn-pink { background: var(--accent-7); }
-        .btn-pink:hover { background: #db2777; transform: translateY(-2px); }
         .btn-orange { background: var(--accent-8); }
         .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
         .logout-btn {
@@ -178,6 +174,7 @@
         }
         .tab:hover { color: white; }
         .tab.active { background: var(--accent-1); color: white; }
+        .tab.hidden-tab { display: none; }
         .hidden { display: none; }
         
         .chart-container { position: relative; height: 140px; }
@@ -203,17 +200,6 @@
         
         .barcode { font-family: 'Courier New', monospace; font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
         
-        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .header { flex-direction: column; align-items: flex-start; }
-            .tab-bar { flex-wrap: wrap; }
-            .tab { flex: 1; text-align: center; padding: 4px 8px; font-size: 9px; }
-            .clearance-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
-        
         .dept-selector {
             display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
         }
@@ -238,6 +224,22 @@
             background: rgba(99,102,241,0.15);
             color: white;
         }
+        .dept-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; }
+            .tab-bar { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 4px 8px; font-size: 9px; }
+            .clearance-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -254,18 +256,11 @@
             </div>
         </div>
 
-        <!-- Department Selector -->
+        <!-- Department Selector - Role Based -->
         <div class="card">
             <div class="card-title">🏛️ Select Department</div>
-            <div class="dept-selector">
-                <button class="dept-btn active" data-dept="all" onclick="selectDepartment('all')">📊 All Departments</button>
-                <button class="dept-btn" data-dept="finance" onclick="selectDepartment('finance')">💰 Finance</button>
-                <button class="dept-btn" data-dept="registry" onclick="selectDepartment('registry')">📋 Registry</button>
-                <button class="dept-btn" data-dept="academic" onclick="selectDepartment('academic')">📚 Academic</button>
-                <button class="dept-btn" data-dept="dean" onclick="selectDepartment('dean')">🏫 Dean</button>
-                <button class="dept-btn" data-dept="accommodation" onclick="selectDepartment('accommodation')">🏠 Accommodation</button>
-                <button class="dept-btn" data-dept="discipline" onclick="selectDepartment('discipline')">⚖️ Discipline</button>
-                <button class="dept-btn" data-dept="student" onclick="selectDepartment('student')">👨‍🎓 Student</button>
+            <div class="dept-selector" id="deptSelector">
+                <!-- Departments will be loaded based on role -->
             </div>
         </div>
 
@@ -286,7 +281,7 @@
             <button class="tab" data-tab="clearance" onclick="switchTab('clearance')">🔍 Clearance</button>
             <button class="tab" data-tab="certificates" onclick="switchTab('certificates')">📜 Certificates</button>
             <button class="tab" data-tab="inventory" onclick="switchTab('inventory')">📁 Inventory</button>
-            <button class="tab" data-tab="finance" onclick="switchTab('finance')">💰 Finance</button>
+            <button class="tab" data-tab="finance" onclick="switchTab('finance')" id="financeTab">💰 Finance</button>
         </div>
 
         <!-- ===== TAB: OVERVIEW ===== -->
@@ -403,9 +398,44 @@
             { id: 5, number: 'S2024005', name: 'Charlie Davis', programme: 'LLB Law', status: 'Active', cleared: false },
         ];
 
+        // ===== DEPARTMENT-SPECIFIC INVENTORY =====
         let inventory = [];
         let invNextId = 1;
         let currentDept = 'all';
+
+        // Sample inventory by department
+        const sampleInventory = {
+            'registry': [
+                { name: 'Student Records 2024', number: 'REG-2024-001', category: 'Records', location: 'Cabinet R, Shelf 1' },
+                { name: 'Certificate Logs', number: 'REG-2024-002', category: 'Records', location: 'Cabinet R, Shelf 2' },
+                { name: 'Graduation Lists', number: 'REG-2024-003', category: 'Reports', location: 'Cabinet R, Shelf 3' },
+            ],
+            'finance': [
+                { name: 'Fee Payment Records', number: 'FIN-2024-001', category: 'Records', location: 'Cabinet F, Shelf 1' },
+                { name: 'Financial Reports', number: 'FIN-2024-002', category: 'Reports', location: 'Cabinet F, Shelf 2' },
+                { name: 'Scholarship Records', number: 'FIN-2024-003', category: 'Records', location: 'Cabinet F, Shelf 3' },
+            ],
+            'academic': [
+                { name: 'Course Records', number: 'ACA-2024-001', category: 'Records', location: 'Cabinet A, Shelf 1' },
+                { name: 'Exam Results', number: 'ACA-2024-002', category: 'Records', location: 'Cabinet A, Shelf 2' },
+            ],
+            'dean': [
+                { name: 'Student Disciplinary', number: 'DEAN-2024-001', category: 'Records', location: 'Cabinet D, Shelf 1' },
+                { name: 'Faculty Reports', number: 'DEAN-2024-002', category: 'Reports', location: 'Cabinet D, Shelf 2' },
+            ],
+            'accommodation': [
+                { name: 'Hostel Records', number: 'ACC-2024-001', category: 'Records', location: 'Cabinet H, Shelf 1' },
+                { name: 'Room Allocations', number: 'ACC-2024-002', category: 'Records', location: 'Cabinet H, Shelf 2' },
+            ],
+            'discipline': [
+                { name: 'Case Files', number: 'DIS-2024-001', category: 'Records', location: 'Cabinet D, Shelf 1' },
+                { name: 'Disciplinary Reports', number: 'DIS-2024-002', category: 'Reports', location: 'Cabinet D, Shelf 2' },
+            ],
+            'student': [
+                { name: 'Personal Records', number: 'STU-2024-001', category: 'Records', location: 'Cabinet S, Shelf 1' },
+                { name: 'Academic Progress', number: 'STU-2024-002', category: 'Records', location: 'Cabinet S, Shelf 2' },
+            ]
+        };
 
         function getUser() {
             try { const data = localStorage.getItem('user'); return data ? JSON.parse(data) : null; } catch { return null; }
@@ -416,8 +446,102 @@
             return user ? user.role : 'PUBLIC_VERIFIER';
         }
 
+        function getUserName() {
+            const user = getUser();
+            return user ? user.name || user.username : 'Guest';
+        }
+
         function isSystemAdmin() {
             return getUserRole() === 'SYSTEM_ADMIN';
+        }
+
+        function getDepartmentAccess() {
+            const role = getUserRole();
+            const access = {
+                'SYSTEM_ADMIN': ['all', 'finance', 'registry', 'academic', 'dean', 'accommodation', 'discipline', 'student'],
+                'REGISTRAR': ['all', 'registry', 'academic', 'student'],
+                'FINANCE_HEAD': ['all', 'finance'],
+                'FINANCE_OFFICER': ['all', 'finance'],
+                'ACADEMIC_HEAD': ['all', 'academic', 'registry'],
+                'ACADEMIC_OFFICER': ['all', 'academic'],
+                'DEAN': ['all', 'dean', 'academic', 'student'],
+                'STUDENT': ['all', 'student'],
+                'ACCOMMODATION_HEAD': ['all', 'accommodation'],
+                'ACCOMMODATION_OFFICER': ['all', 'accommodation'],
+                'DISCIPLINE_HEAD': ['all', 'discipline'],
+                'DISCIPLINE_OFFICER': ['all', 'discipline']
+            };
+            return access[role] || ['all'];
+        }
+
+        function getDepartmentDisplayName(dept) {
+            const names = {
+                'all': '📊 All Departments',
+                'finance': '💰 Finance',
+                'registry': '📋 Registry',
+                'academic': '📚 Academic',
+                'dean': '🏫 Dean',
+                'accommodation': '🏠 Accommodation',
+                'discipline': '⚖️ Discipline',
+                'student': '👨‍🎓 Student'
+            };
+            return names[dept] || dept;
+        }
+
+        function getDepartmentIcon(dept) {
+            const icons = {
+                'all': '📊',
+                'finance': '💰',
+                'registry': '📋',
+                'academic': '📚',
+                'dean': '🏫',
+                'accommodation': '🏠',
+                'discipline': '⚖️',
+                'student': '👨‍🎓'
+            };
+            return icons[dept] || '📁';
+        }
+
+        function hasDepartmentAccess(dept) {
+            const allowed = getDepartmentAccess();
+            return allowed.includes(dept) || allowed.includes('all');
+        }
+
+        function getDepartmentInventory(dept) {
+            // If All Departments, combine all
+            if (dept === 'all') {
+                let allItems = [];
+                for (const key in sampleInventory) {
+                    allItems = allItems.concat(sampleInventory[key]);
+                }
+                return allItems;
+            }
+            return sampleInventory[dept] || [];
+        }
+
+        function renderDepartmentSelector() {
+            const allowed = getDepartmentAccess();
+            const container = document.getElementById('deptSelector');
+            
+            container.innerHTML = allowed.map(dept => `
+                <button class="dept-btn ${dept === 'all' ? 'active' : ''}" 
+                        data-dept="${dept}" 
+                        onclick="selectDepartment('${dept}')">
+                    ${getDepartmentIcon(dept)} ${getDepartmentDisplayName(dept).replace(/[^\w\s]/g, '').trim()}
+                </button>
+            `).join('');
+        }
+
+        function updateTabs() {
+            const financeTab = document.getElementById('financeTab');
+            if (hasDepartmentAccess('finance')) {
+                financeTab.classList.remove('hidden-tab');
+            } else {
+                financeTab.classList.add('hidden-tab');
+                if (financeTab.classList.contains('active')) {
+                    switchTab('overview');
+                }
+            }
         }
 
         function logout() {
@@ -481,7 +605,10 @@
             document.getElementById('cleared').textContent = cleared;
             document.getElementById('pending').textContent = pending;
             document.getElementById('certificates').textContent = '0';
-            document.getElementById('files').textContent = inventory.length;
+            
+            // Update files count based on current department
+            const deptFiles = getDepartmentInventory(currentDept);
+            document.getElementById('files').textContent = deptFiles.length;
             document.getElementById('revenue').textContent = '0';
         }
 
@@ -531,14 +658,18 @@
             `;
         }
 
-        // ===== INVENTORY =====
         function renderInventory() {
             const tbody = document.getElementById('invTableBody');
-            if (inventory.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+            const deptFiles = getDepartmentInventory(currentDept);
+            
+            document.getElementById('files').textContent = deptFiles.length;
+            
+            if (deptFiles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files in this department</td></tr>';
                 return;
             }
-            tbody.innerHTML = inventory.map((item, i) => `
+            
+            tbody.innerHTML = deptFiles.map((item, i) => `
                 <tr>
                     <td>${i + 1}</td>
                     <td><strong>${item.name}</strong></td>
@@ -547,12 +678,11 @@
                     <td>${item.location}</td>
                     <td><span class="badge badge-success">Active</span></td>
                     <td>
-                        <button class="btn btn-warning btn-sm" onclick="editInventory(${item.id})">✏️</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteInventory(${item.id})">🗑️</button>
+                        <button class="btn btn-warning btn-sm" onclick="editInventoryItem(${i})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInventoryItem(${i})">🗑️</button>
                     </td>
                 </tr>
             `).join('');
-            document.getElementById('files').textContent = inventory.length;
         }
 
         function addInventory() {
@@ -568,28 +698,42 @@
                 return;
             }
 
-            inventory.push({ id: invNextId++, name, number, category, location, status: 'Active' });
+            // Get current department
+            const dept = currentDept === 'all' ? 'registry' : currentDept;
+            
+            // Add to appropriate department inventory
+            if (!sampleInventory[dept]) {
+                sampleInventory[dept] = [];
+            }
+            
+            sampleInventory[dept].push({ name, number, category, location, status: 'Active' });
+            
             renderInventory();
             document.getElementById('invFileName').value = '';
             document.getElementById('invFileNumber').value = '';
             document.getElementById('invLocation').value = '';
             resultDiv.className = 'result-box show success';
-            resultDiv.textContent = `✅ File "${name}" added!`;
+            resultDiv.textContent = `✅ File "${name}" added to ${getDepartmentDisplayName(dept)}!`;
             setTimeout(() => resultDiv.className = 'result-box', 3000);
             updateStats();
         }
 
-        function deleteInventory(id) {
+        function deleteInventoryItem(index) {
             if (confirm('Delete this file?')) {
-                inventory = inventory.filter(item => item.id !== id);
-                renderInventory();
-                updateStats();
+                const dept = currentDept === 'all' ? 'registry' : currentDept;
+                if (sampleInventory[dept]) {
+                    sampleInventory[dept].splice(index, 1);
+                    renderInventory();
+                    updateStats();
+                }
             }
         }
 
-        function editInventory(id) {
-            const item = inventory.find(i => i.id === id);
-            if (!item) return;
+        function editInventoryItem(index) {
+            const dept = currentDept === 'all' ? 'registry' : currentDept;
+            if (!sampleInventory[dept] || !sampleInventory[dept][index]) return;
+            
+            const item = sampleInventory[dept][index];
             const newName = prompt('File Name:', item.name);
             if (newName) item.name = newName;
             const newNumber = prompt('File Number:', item.number);
@@ -655,7 +799,6 @@
             loadCharts();
         }
 
-        // ===== CHARTS =====
         function loadCharts() {
             // Department Chart
             const ctx1 = document.getElementById('deptChart').getContext('2d');
@@ -746,7 +889,6 @@
             `;
         }
 
-        // ===== INIT =====
         function init() {
             const token = localStorage.getItem('access_token');
             if (!token) {
@@ -756,18 +898,8 @@
             const user = getUser();
             document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
             
-            // Load sample inventory
-            const saved = localStorage.getItem('unified_inventory');
-            if (saved) {
-                try { inventory = JSON.parse(saved); invNextId = inventory.length + 1; } catch(e) { inventory = []; }
-            } else {
-                inventory = [
-                    { id: invNextId++, name: 'Student Records 2024', number: 'DOC-2024-001', category: 'Records', location: 'Cabinet A, Shelf 1', status: 'Active' },
-                    { id: invNextId++, name: 'Financial Reports', number: 'DOC-2024-002', category: 'Reports', location: 'Cabinet A, Shelf 2', status: 'Active' },
-                ];
-                localStorage.setItem('unified_inventory', JSON.stringify(inventory));
-            }
-            
+            renderDepartmentSelector();
+            updateTabs();
             refreshAll();
             document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
         }

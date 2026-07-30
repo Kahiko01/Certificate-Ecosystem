@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏛️ Dean's Dashboard - Certificate Ecosystem</title>
+    <title>🏫 Dean's Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,21 +20,27 @@
             --accent-4: #f59e0b;
             --accent-5: #ef4444;
             --accent-6: #8b5cf6;
-            --accent-7: #f472b6;
+            --accent-7: #ec4899;
             --accent-8: #fb923c;
         }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             padding: 16px;
         }
         .container { max-width: 1600px; margin: 0 auto; }
-        
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            flex-wrap: wrap;
+            gap: 12px;
         }
         .header h1 {
             font-size: 24px; font-weight: 800;
@@ -44,17 +49,6 @@
             -webkit-text-fill-color: transparent;
         }
         .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        
-        .badge {
-            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-        }
-        .badge-online { background: rgba(16,185,129,0.15); color: #10b981; }
-        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
-        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
-        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
-        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
-        .badge-orange { background: rgba(251,146,60,0.15); color: #fb923c; }
-        
         .btn {
             padding: 8px 16px; border: none; border-radius: 8px;
             font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
@@ -65,17 +59,20 @@
         .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
         .btn-success { background: var(--accent-3); }
         .btn-success:hover { background: #059669; transform: translateY(-2px); }
-        .btn-warning { background: var(--accent-4); color: #0f172a; }
-        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
-        .btn-danger { background: var(--accent-5); }
-        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
-        .btn-orange { background: var(--accent-8); }
-        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
         .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border-color); }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-        .btn-sm { padding: 4px 12px; font-size: 12px; width: auto; }
-        .btn-block { width: 100%; justify-content: center; }
-        
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-orange { background: var(--accent-8); }
+        .btn-orange:hover { background: #ea580c; transform: translateY(-2px); }
+        .logout-btn {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            padding: 6px 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -89,9 +86,8 @@
             margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
         }
         .card-title .sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
-        
         .stats-grid {
-            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px;
         }
         .stat-card {
             background: rgba(255,255,255,0.03);
@@ -103,21 +99,13 @@
         .stat-card .number { font-size: 22px; font-weight: 800; color: var(--accent-8); }
         .stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
         .stat-card .icon { font-size: 18px; display: block; margin-bottom: 2px; }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-        
-        .table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { 
-            text-align: left; padding: 8px 10px; color: var(--text-secondary); 
-            font-weight: 600; border-bottom: 1px solid var(--border-color);
-            position: sticky; top: 0; background: var(--bg-primary);
-        }
+        th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-primary); }
         td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
         tr:hover { background: rgba(255,255,255,0.02); }
-        
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
         .form-control {
@@ -128,51 +116,16 @@
             color: white; font-size: 13px; font-family: 'Inter', sans-serif;
             transition: all 0.2s;
         }
-        .form-control:focus { outline: none; border-color: var(--accent-8); box-shadow: 0 0 0 3px rgba(251,146,60,0.15); }
+        .form-control:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
         .form-control::placeholder { color: #64748b; }
         select.form-control { cursor: pointer; }
         select.form-control option { background: #1e293b; }
-        
-        .upload-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: rgba(0,0,0,0.15);
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
         }
-        .upload-zone:hover {
-            border-color: var(--accent-8);
-            background: rgba(251,146,60,0.05);
-        }
-        .upload-zone.dragover {
-            border-color: var(--accent-8);
-            background: rgba(251,146,60,0.1);
-        }
-        .upload-zone .icon { font-size: 48px; display: block; margin-bottom: 10px; }
-        .upload-zone .text { color: var(--text-secondary); font-size: 14px; }
-        .upload-zone .sub-text { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
-        
-        .progress-bar {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.05);
-            border-radius: 4px; overflow: hidden; margin-top: 10px;
-        }
-        .progress-bar .fill {
-            height: 100%; background: linear-gradient(90deg, var(--accent-8), var(--accent-6));
-            border-radius: 4px; transition: width 0.5s ease; width: 0%;
-        }
-        
-        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .mt-8 { margin-top: 8px; }
-        .mb-8 { margin-bottom: 8px; }
-        .text-muted { color: var(--text-secondary); font-size: 11px; }
-        .text-center { text-align: center; }
-        .text-success { color: var(--accent-3); }
-        .text-danger { color: var(--accent-5); }
-        .text-warning { color: var(--accent-4); }
-        .text-orange { color: var(--accent-8); }
-        
+        .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .barcode { font-family: 'Courier New', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
         .result-box {
             margin-top: 8px; padding: 10px 14px; border-radius: 8px;
             font-size: 12px; display: none; line-height: 1.5;
@@ -181,71 +134,31 @@
         .result-box.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
         .result-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
         .result-box.info { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
-        .result-box.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
-        
-        .status-item {
-            padding: 4px 10px; border-radius: 4px;
-            display: inline-flex; align-items: center; gap: 4px;
-            font-size: 11px; font-weight: 600;
-        }
-        .status-item.active { background: rgba(16,185,129,0.1); color: #10b981; }
-        .status-item.pending { background: rgba(245,158,11,0.1); color: #f59e0b; }
-        .status-item.suspended { background: rgba(239,68,68,0.1); color: #ef4444; }
-        
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: var(--bg-card); border-radius: 12px; padding: 24px;
-            max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
-            border: 1px solid var(--border-color);
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
-        .modal-close:hover { color: white; }
-        
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-8 { margin-top: 8px; }
+        .text-muted { color: #94a3b8; font-size: 11px; }
+        .text-center { text-align: center; }
         .chart-container { position: relative; height: 180px; }
-        
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 992px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (max-width: 992px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .header { flex-direction: column; align-items: flex-start; }
         }
         @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
-        
-        .dept-chip {
-            display: inline-block; padding: 2px 10px; border-radius: 12px;
-            font-size: 10px; font-weight: 600; margin: 2px;
-        }
-        .dept-chip.cs { background: rgba(99,102,241,0.2); color: #818cf8; }
-        .dept-chip.business { background: rgba(16,185,129,0.2); color: #10b981; }
-        .dept-chip.engineering { background: rgba(245,158,11,0.2); color: #f59e0b; }
-        .dept-chip.medicine { background: rgba(236,72,153,0.2); color: #f472b6; }
-        .dept-chip.law { background: rgba(139,92,246,0.2); color: #a78bfa; }
     </style>
-<script>
-}
-</script>
 </head>
 <body>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:rgba(15,23,42,0.8);border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:20px;">
-        <div style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#e0e7ff,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏛️ Certificate Ecosystem</div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <span id="userBadge" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
-            <button onclick="logout()" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-family:Inter,sans-serif;font-size:13px;">🚪 Logout</button>
-        </div>
-    </div>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <h1>🏛️ Dean's Dashboard</h1>
+            <h1>🏫 Dean's Dashboard</h1>
             <div class="header-right">
-                <span class="badge badge-online">● Online</span>
+                <span id="userDisplay" style="color:#94a3b8;font-size:13px;">👤 Loading...</span>
+                <span class="badge badge-online" style="color:#10b981;">● Online</span>
                 <span class="text-muted" id="lastUpdate"></span>
                 <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄</button>
+                <button class="btn btn-secondary btn-sm" onclick="scrollToInventory()">📁 Inventory</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -256,25 +169,6 @@
             <div class="stat-card"><span class="icon">👨‍🏫</span><span class="number" id="totalFaculty">-</span><div class="label">Faculty</div></div>
             <div class="stat-card"><span class="icon">📊</span><span class="number" id="avgGPA">-</span><div class="label">Avg GPA</div></div>
             <div class="stat-card"><span class="icon">✅</span><span class="number" id="passingRate">-</span><div class="label">Passing Rate</div></div>
-            <div class="stat-card"><span class="icon">🎓</span><span class="number" id="graduating">-</span><div class="label">Graduating</div></div>
-        </div>
-
-        <!-- Upload Section -->
-        <div class="card">
-            <div class="card-title">📤 Upload Department Data <span class="sub">Excel/CSV</span></div>
-            <div class="upload-zone" id="uploadZone">
-                <span class="icon">📁</span>
-                <div class="text">Drop Excel file here or click to browse</div>
-                <div class="sub-text">Supports .xlsx, .xls, .csv · Auto-detects columns</div>
-                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
-            </div>
-            <div class="progress-bar"><div class="fill" id="uploadProgress"></div></div>
-            <div id="uploadResult" class="result-box"></div>
-            <div class="flex mt-8">
-                <button class="btn btn-success btn-sm" onclick="downloadTemplate()">📥 Download Template</button>
-                <button class="btn btn-primary btn-sm" onclick="document.getElementById('fileInput').click()">📤 Upload File</button>
-                <button class="btn btn-orange btn-sm" onclick="processUpload()">⚡ Process & Import</button>
-            </div>
         </div>
 
         <!-- Charts -->
@@ -284,702 +178,291 @@
                 <div class="chart-container"><canvas id="deptChart"></canvas></div>
             </div>
             <div class="card">
-                <div class="card-title">📈 GPA Distribution by Department</div>
-                <div class="chart-container"><canvas id="gpaDeptChart"></canvas></div>
+                <div class="card-title">📈 GPA Distribution</div>
+                <div class="chart-container"><canvas id="gpaChart"></canvas></div>
             </div>
         </div>
 
-        <!-- Faculty Table -->
-        <div class="card">
+        <!-- ===== INVENTORY SECTION ===== -->
+        <div class="card" id="inventorySection">
             <div class="card-title">
-                📋 Department Faculty
-                <span class="sub" id="facultyCount">0 faculty</span>
+                📁 Dean's Office File Inventory
+                <span class="sub" id="deanInventoryCount">0 files</span>
             </div>
-            <div class="table-wrap">
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>File Name</label>
+                    <input class="form-control" type="text" id="deanFileName" placeholder="Enter file name">
+                </div>
+                <div class="form-group">
+                    <label>File Number</label>
+                    <input class="form-control" type="text" id="deanFileNumber" placeholder="e.g., DEAN-2026-001">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" id="deanFileCategory">
+                        <option value="Student Records">Student Records</option>
+                        <option value="Academic Reports">Academic Reports</option>
+                        <option value="Disciplinary">Disciplinary</option>
+                        <option value="Correspondence">Correspondence</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cabinet Location</label>
+                    <input class="form-control" type="text" id="deanFileLocation" placeholder="e.g., Cabinet D, Shelf 3">
+                </div>
+            </div>
+            <button class="btn btn-orange btn-sm" onclick="addDeanInventory()">📁 Add File</button>
+            <div id="deanInventoryResult" class="result-box"></div>
+            
+            <div class="table-wrap" style="margin-top:12px;">
                 <table>
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Faculty Name</th>
-                            <th>Department</th>
-                            <th>Title</th>
-                            <th>Specialization</th>
-                            <th>Students</th>
+                            <th>File Name</th>
+                            <th>File Number</th>
+                            <th>Category</th>
+                            <th>Location</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="facultyTableBody">
-                        <tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No faculty records loaded. Upload an Excel file to get started.</td></tr>
+                    <tbody id="deanInventoryTable">
+                        <tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-
-        <!-- Student Performance Table -->
-        <div class="card">
-            <div class="card-title">
-                📋 Student Performance by Department
-                <span class="sub" id="studentPerfCount">0 students</span>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Student Number</th>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Programme</th>
-                            <th>GPA</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentPerfBody">
-                        <tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No student records loaded.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Add Faculty Modal -->
-        <div class="modal" id="facultyModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>👨‍🏫 Add Faculty Member</h3>
-                    <button class="modal-close" onclick="closeFacultyModal()">×</button>
-                </div>
-                <div class="form-group">
-                    <label>Faculty Name</label>
-                    <input class="form-control" type="text" id="facultyName" placeholder="Full name">
-                </div>
-                <div class="form-group">
-                    <label>Department</label>
-                    <select class="form-control" id="facultyDept">
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Business">Business</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Medicine">Medicine</option>
-                        <option value="Law">Law</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Title</label>
-                    <select class="form-control" id="facultyTitle">
-                        <option value="Professor">Professor</option>
-                        <option value="Associate Professor">Associate Professor</option>
-                        <option value="Assistant Professor">Assistant Professor</option>
-                        <option value="Senior Lecturer">Senior Lecturer</option>
-                        <option value="Lecturer">Lecturer</option>
-                        <option value="Instructor">Instructor</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Specialization</label>
-                    <input class="form-control" type="text" id="facultySpecialization" placeholder="e.g., Data Science">
-                </div>
-                <button class="btn btn-orange btn-block" onclick="addFaculty()">👨‍🏫 Add Faculty</button>
-                <div id="facultyResult" class="result-box"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // ===== CONFIGURATION =====
-        const API = 'http://127.0.0.1:8000';
-        let faculty = [];
-        let students = [];
-        let uploadedData = [];
-        let deptChart = null;
-        let gpaDeptChart = null;
+        function getUser() {
+            try {
+                const data = localStorage.getItem('user');
+                return data ? JSON.parse(data) : null;
+            } catch { return null; }
+        }
 
-        // ===== SMART EXCEL PARSER =====
-        class SmartExcelParser {
-            constructor() {
-                this.columnPatterns = {
-                    faculty_name: [/faculty\s*(?:name|nimi)/i, /lecturer/i, /instructor/i, /teacher/i],
-                    department: [/department/i, /dept/i, /school/i, /faculty/i],
-                    title: [/title/i, /position/i, /rank/i],
-                    specialization: [/specialization/i, /speciality/i, /expertise/i, /field/i],
-                    student_number: [/student\s*(?:number|id|no|#)/i, /reg\s*(?:number|id|no|#)/i],
-                    first_name: [/first\s*(?:name|nimi)/i, /given\s*name/i, /forename/i, /fname/i],
-                    last_name: [/last\s*(?:name|nimi)/i, /surname/i, /family\s*name/i, /lname/i],
-                    programme: [/programme/i, /program/i, /course/i, /degree/i],
-                    gpa: [/gpa/i, /grade\s*point/i, /average/i],
-                    students_count: [/students/i, /enrolled/i, /class\s*size/i]
-                };
-
-                this.knownColumns = {
-                    'facultyname': 'faculty_name',
-                    'lecturer': 'faculty_name',
-                    'instructor': 'faculty_name',
-                    'dept': 'department',
-                    'school': 'department',
-                    'position': 'title',
-                    'rank': 'title',
-                    'speciality': 'specialization',
-                    'expertise': 'specialization'
-                };
-            }
-
-            detectColumn(header) {
-                if (!header) return null;
-                const clean = header.toString().trim();
-                const lower = clean.toLowerCase().replace(/[^a-z0-9]/g, '');
-                
-                if (this.knownColumns[lower]) return this.knownColumns[lower];
-                
-                for (const [field, patterns] of Object.entries(this.columnPatterns)) {
-                    for (const pattern of patterns) {
-                        if (pattern.test(clean)) return field;
-                    }
-                }
-                return null;
-            }
-
-            parseExcelData(jsonData) {
-                if (!jsonData || jsonData.length === 0) {
-                    return { data: [], mapping: {}, errors: ['No data found'] };
-                }
-
-                const headers = Object.keys(jsonData[0]);
-                const mapping = {};
-                const unmapped = [];
-
-                for (const header of headers) {
-                    const detected = this.detectColumn(header);
-                    if (detected) {
-                        mapping[header] = detected;
-                    } else {
-                        unmapped.push(header);
-                    }
-                }
-
-                const mappedData = jsonData.map((row, index) => {
-                    const mappedRow = { _original_index: index };
-
-                    for (const [header, field] of Object.entries(mapping)) {
-                        const value = row[header];
-                        if (value !== undefined && value !== null && value !== '') {
-                            mappedRow[field] = value;
-                        }
-                    }
-
-                    // Ensure required fields
-                    if (!mappedRow.faculty_name) mappedRow.faculty_name = `Faculty ${index + 1}`;
-                    if (!mappedRow.department) mappedRow.department = 'General';
-                    if (!mappedRow.title) mappedRow.title = 'Lecturer';
-                    if (!mappedRow.specialization) mappedRow.specialization = 'General';
-                    if (!mappedRow.students_count) mappedRow.students_count = Math.floor(Math.random() * 60) + 20;
-                    if (!mappedRow.student_number) {
-                        mappedRow.student_number = `S${String(index + 1).padStart(4, '0')}`;
-                    }
-                    if (!mappedRow.first_name) mappedRow.first_name = 'Student';
-                    if (!mappedRow.last_name) mappedRow.last_name = String(index + 1);
-                    if (!mappedRow.programme) mappedRow.programme = mappedRow.department || 'General';
-                    if (!mappedRow.gpa) mappedRow.gpa = (2.0 + Math.random() * 2.0).toFixed(2);
-
-                    return mappedRow;
-                });
-
-                return { data: mappedData, mapping, unmapped, errors: [] };
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login_with_rbac.html';
             }
         }
 
-        const parser = new SmartExcelParser();
+        function refreshAll() {
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+            loadDeanInventory();
+        }
 
-        // ===== FILE UPLOAD HANDLERS =====
-        const uploadZone = document.getElementById('uploadZone');
-        const fileInput = document.getElementById('fileInput');
+        function scrollToInventory() {
+            const el = document.getElementById('inventorySection');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
 
-        uploadZone.addEventListener('click', () => fileInput.click());
-        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                handleFileUpload(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileUpload(e.target.files[0]);
-            }
-        });
+        // ===== DEAN'S INVENTORY =====
+        let deanInventory = [];
+        let deanNextId = 1;
 
-        // ===== HANDLE FILE UPLOAD =====
-        function handleFileUpload(file) {
-            const resultDiv = document.getElementById('uploadResult');
-            const progress = document.getElementById('uploadProgress');
+        // Sample data
+        const sampleDeanInventory = [
+            { id: 1, name: 'Student Academic Records 2024', number: 'DEAN-2024-001', category: 'Student Records', location: 'Cabinet D, Shelf 1', status: 'Active' },
+            { id: 2, name: 'Department Performance Reports', number: 'DEAN-2024-002', category: 'Academic Reports', location: 'Cabinet D, Shelf 2', status: 'Active' },
+            { id: 3, name: 'Disciplinary Case Files 2024', number: 'DEAN-2024-003', category: 'Disciplinary', location: 'Cabinet D, Shelf 3', status: 'Active' },
+            { id: 4, name: 'Faculty Meeting Minutes', number: 'DEAN-2024-004', category: 'Correspondence', location: 'Cabinet D, Shelf 4', status: 'Active' },
+            { id: 5, name: 'Student Appeals 2024', number: 'DEAN-2024-005', category: 'Student Records', location: 'Cabinet D, Shelf 5', status: 'Active' },
+        ];
 
-            resultDiv.className = 'result-box show info';
-            resultDiv.textContent = '⏳ Reading file...';
-            progress.style.width = '30%';
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
+        function loadDeanInventory() {
+            const saved = localStorage.getItem('inventory_dean');
+            if (saved) {
                 try {
-                    progress.style.width = '60%';
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-                    progress.style.width = '80%';
-                    const parsed = parser.parseExcelData(jsonData);
-
-                    if (parsed.errors.length > 0) {
-                        resultDiv.className = 'result-box show error';
-                        resultDiv.textContent = '❌ ' + parsed.errors.join(', ');
-                        progress.style.width = '0%';
-                        return;
-                    }
-
-                    uploadedData = parsed.data;
-                    
-                    progress.style.width = '100%';
-                    resultDiv.className = 'result-box show success';
-                    resultDiv.innerHTML = `✅ Successfully parsed ${uploadedData.length} records from ${file.name}`;
-
-                } catch (err) {
-                    resultDiv.className = 'result-box show error';
-                    resultDiv.textContent = '❌ Error: ' + err.message;
-                    progress.style.width = '0%';
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // ===== PROCESS UPLOAD =====
-        function processUpload() {
-            if (uploadedData.length === 0) {
-                showResult('uploadResult', 'error', '⚠️ No data loaded. Please upload a file first.');
-                return;
-            }
-
-            // Separate faculty and student data
-            const facultyData = uploadedData.filter(d => d.faculty_name);
-            const studentData = uploadedData.filter(d => d.student_number);
-
-            if (facultyData.length > 0) {
-                faculty = facultyData.map((f, index) => ({
-                    id: index + 1,
-                    name: f.faculty_name || `Faculty ${index + 1}`,
-                    department: f.department || 'General',
-                    title: f.title || 'Lecturer',
-                    specialization: f.specialization || 'General',
-                    students: f.students_count || Math.floor(Math.random() * 60) + 20,
-                    status: 'ACTIVE'
-                }));
-            }
-
-            if (studentData.length > 0) {
-                students = studentData.map((s, index) => ({
-                    id: index + 1,
-                    student_number: s.student_number || `S${String(index + 1).padStart(4, '0')}`,
-                    first_name: s.first_name || 'Student',
-                    last_name: s.last_name || String(index + 1),
-                    department: s.department || 'General',
-                    programme: s.programme || (s.department || 'General'),
-                    gpa: parseFloat(s.gpa) || (2.0 + Math.random() * 2.0),
-                    status: parseFloat(s.gpa) >= 2.0 ? 'PASS' : 'FAIL'
-                }));
+                    deanInventory = JSON.parse(saved);
+                    deanNextId = deanInventory.length + 1;
+                } catch(e) { deanInventory = []; }
             } else {
-                // Generate sample students if none provided
-                generateSampleStudents();
+                // Load sample data
+                localStorage.setItem('inventory_dean', JSON.stringify(sampleDeanInventory));
+                deanInventory = sampleDeanInventory;
+                deanNextId = deanInventory.length + 1;
             }
-
-            renderFacultyTable();
-            renderStudentTable();
-            updateStats();
-            updateCharts();
-            showResult('uploadResult', 'success', `✅ Successfully imported ${faculty.length} faculty and ${students.length} students!`);
+            renderDeanInventory();
         }
 
-        // ===== GENERATE SAMPLE STUDENTS =====
-        function generateSampleStudents() {
-            const depts = ['Computer Science', 'Business', 'Engineering', 'Medicine', 'Law'];
-            const firstNames = ['John', 'Jane', 'Bob', 'Alice', 'Charlie', 'Eva', 'David', 'Sarah', 'Michael', 'Emily'];
-            const lastNames = ['Doe', 'Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Garcia', 'Martinez', 'Robinson'];
+        function renderDeanInventory() {
+            const tbody = document.getElementById('deanInventoryTable');
+            const count = document.getElementById('deanInventoryCount');
             
-            students = [];
-            for (let i = 0; i < 30; i++) {
-                const dept = depts[Math.floor(Math.random() * depts.length)];
-                const gpa = 1.5 + Math.random() * 2.5;
-                students.push({
-                    id: i + 1,
-                    student_number: `S${String(i + 1).padStart(4, '0')}`,
-                    first_name: firstNames[Math.floor(Math.random() * firstNames.length)],
-                    last_name: lastNames[Math.floor(Math.random() * lastNames.length)],
-                    department: dept,
-                    programme: dept,
-                    gpa: gpa,
-                    status: gpa >= 2.0 ? 'PASS' : 'FAIL'
-                });
-            }
-        }
-
-        // ===== RENDER FACULTY TABLE =====
-        function renderFacultyTable() {
-            const tbody = document.getElementById('facultyTableBody');
-
-            if (faculty.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No faculty records.</td></tr>`;
-                document.getElementById('facultyCount').textContent = '0 faculty';
+            if (deanInventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No files added yet</td></tr>';
+                if (count) count.textContent = '0 files';
                 return;
             }
-
-            document.getElementById('facultyCount').textContent = `${faculty.length} faculty`;
-
-            tbody.innerHTML = faculty.map(f => `
+            
+            if (count) count.textContent = `${deanInventory.length} files`;
+            
+            tbody.innerHTML = deanInventory.map((item, index) => `
                 <tr>
-                    <td>${f.id}</td>
-                    <td><strong>${f.name}</strong></td>
-                    <td><span class="dept-chip ${f.department.toLowerCase().replace(/\s/g,'')}">${f.department}</span></td>
-                    <td>${f.title}</td>
-                    <td>${f.specialization}</td>
-                    <td>${f.students}</td>
-                    <td><span class="status-item active">ACTIVE</span></td>
+                    <td>${index + 1}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="barcode">${item.number}</span></td>
+                    <td><span class="badge badge-info">${item.category}</span></td>
+                    <td>${item.location}</td>
+                    <td><span class="badge badge-success">Active</span></td>
                     <td>
-                        <button class="btn btn-orange btn-sm" onclick="editFaculty(${f.id})" style="width:auto;">✏️</button>
+                        <button class="btn btn-warning btn-sm" onclick="editDeanItem(${item.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDeanItem(${item.id})">🗑️</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // ===== RENDER STUDENT TABLE =====
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentPerfBody');
+        function addDeanInventory() {
+            const name = document.getElementById('deanFileName').value.trim();
+            const number = document.getElementById('deanFileNumber').value.trim();
+            const category = document.getElementById('deanFileCategory').value;
+            const location = document.getElementById('deanFileLocation').value.trim();
+            const resultDiv = document.getElementById('deanInventoryResult');
 
-            if (students.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No student records.</td></tr>`;
-                document.getElementById('studentPerfCount').textContent = '0 students';
+            if (!name || !number || !location) {
+                resultDiv.className = 'result-box show error';
+                resultDiv.textContent = '⚠️ Please fill in all fields';
                 return;
             }
 
-            document.getElementById('studentPerfCount').textContent = `${students.length} students`;
+            deanInventory.push({
+                id: deanNextId++,
+                name: name,
+                number: number,
+                category: category,
+                location: location,
+                status: 'Active',
+                dateAdded: new Date().toISOString().split('T')[0]
+            });
 
-            tbody.innerHTML = students.slice(0, 15).map(s => `
-                <tr>
-                    <td>${s.id}</td>
-                    <td><strong>${s.student_number}</strong></td>
-                    <td>${s.first_name} ${s.last_name}</td>
-                    <td><span class="dept-chip ${s.department.toLowerCase().replace(/\s/g,'')}">${s.department}</span></td>
-                    <td>${s.programme}</td>
-                    <td>${s.gpa.toFixed(2)}</td>
-                    <td><span class="status-item ${s.status === 'PASS' ? 'active' : 'suspended'}">${s.status}</span></td>
-                    <td>
-                        <button class="btn btn-info btn-sm" onclick="viewStudent('${s.student_number}')" style="width:auto;">📊</button>
-                    </td>
-                </tr>
-            `).join('');
+            localStorage.setItem('inventory_dean', JSON.stringify(deanInventory));
+            renderDeanInventory();
+            
+            document.getElementById('deanFileName').value = '';
+            document.getElementById('deanFileNumber').value = '';
+            document.getElementById('deanFileLocation').value = '';
+
+            resultDiv.className = 'result-box show success';
+            resultDiv.textContent = `✅ File "${name}" added successfully!`;
+            setTimeout(() => resultDiv.className = 'result-box', 3000);
         }
 
-        // ===== UPDATE STATS =====
-        function updateStats() {
-            const total = students.length;
-            const depts = new Set(students.map(s => s.department)).size;
-            const totalFaculty = faculty.length;
-            const avgGPA = total > 0 ? (students.reduce((sum, s) => sum + s.gpa, 0) / total) : 0;
-            const passing = students.filter(s => s.status === 'PASS').length;
-            const passRate = total > 0 ? ((passing / total) * 100) : 0;
-            const graduating = students.filter(s => s.gpa >= 3.5).length;
-
-            document.getElementById('totalStudents').textContent = total;
-            document.getElementById('totalDepts').textContent = depts || '-';
-            document.getElementById('totalFaculty').textContent = totalFaculty;
-            document.getElementById('avgGPA').textContent = avgGPA.toFixed(2);
-            document.getElementById('passingRate').textContent = passRate.toFixed(1) + '%';
-            document.getElementById('graduating').textContent = graduating;
+        function deleteDeanItem(id) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                deanInventory = deanInventory.filter(item => item.id !== id);
+                localStorage.setItem('inventory_dean', JSON.stringify(deanInventory));
+                renderDeanInventory();
+                showDeanResult('deanInventoryResult', 'success', '🗑️ File removed');
+            }
         }
 
-        // ===== UPDATE CHARTS =====
-        function updateCharts() {
+        function editDeanItem(id) {
+            const item = deanInventory.find(i => i.id === id);
+            if (!item) return;
+            
+            const newName = prompt('File Name:', item.name);
+            if (newName) item.name = newName;
+            
+            const newNumber = prompt('File Number:', item.number);
+            if (newNumber) item.number = newNumber;
+            
+            const newLocation = prompt('Location:', item.location);
+            if (newLocation) item.location = newLocation;
+            
+            localStorage.setItem('inventory_dean', JSON.stringify(deanInventory));
+            renderDeanInventory();
+            showDeanResult('deanInventoryResult', 'success', '✅ File updated');
+        }
+
+        function showDeanResult(id, type, message) {
+            const resultDiv = document.getElementById(id);
+            resultDiv.className = `result-box show ${type}`;
+            resultDiv.textContent = message;
+            setTimeout(() => resultDiv.className = 'result-box', 3000);
+        }
+
+        // ===== CHARTS =====
+        function loadCharts() {
             // Department Performance Chart
-            const deptStats = {};
-            students.forEach(s => {
-                if (!deptStats[s.department]) {
-                    deptStats[s.department] = { total: 0, gpa: 0, passing: 0 };
-                }
-                deptStats[s.department].total++;
-                deptStats[s.department].gpa += s.gpa;
-                if (s.status === 'PASS') deptStats[s.department].passing++;
-            });
-
-            const deptNames = Object.keys(deptStats);
-            const avgGPAs = deptNames.map(d => (deptStats[d].gpa / deptStats[d].total));
-            const passRates = deptNames.map(d => (deptStats[d].passing / deptStats[d].total) * 100);
-            const colors = ['#818cf8', '#10b981', '#f59e0b', '#f472b6', '#fb923c', '#a78bfa'];
-
             const ctx1 = document.getElementById('deptChart').getContext('2d');
-            if (deptChart) deptChart.destroy();
-            
-            deptChart = new Chart(ctx1, {
+            new Chart(ctx1, {
                 type: 'bar',
                 data: {
-                    labels: deptNames.length ? deptNames : ['No Data'],
-                    datasets: [
-                        {
-                            label: 'Average GPA',
-                            data: deptNames.length ? avgGPAs : [0],
-                            backgroundColor: colors.slice(0, deptNames.length || 1),
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Pass Rate %',
-                            data: deptNames.length ? passRates : [0],
-                            backgroundColor: deptNames.length ? colors.slice(0, deptNames.length).map(c => c + '44') : ['rgba(255,255,255,0.1)'],
-                            borderRadius: 4,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top', labels: { padding: 10, usePointStyle: true, boxWidth: 8 } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, max: 4, grid: { color: 'rgba(255,255,255,0.05)' }, position: 'left' },
-                        y1: { beginAtZero: true, max: 100, grid: { display: false }, position: 'right' },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-
-            // GPA Distribution by Department
-            const ctx2 = document.getElementById('gpaDeptChart').getContext('2d');
-            if (gpaDeptChart) gpaDeptChart.destroy();
-
-            const gpaRanges = ['3.5-4.0', '3.0-3.49', '2.5-2.99', '2.0-2.49', 'Below 2.0'];
-            const deptColors = ['#818cf8', '#10b981', '#f59e0b', '#f472b6', '#fb923c'];
-
-            const datasets = deptNames.map((dept, idx) => {
-                const counts = gpaRanges.map(range => {
-                    const [min, max] = range.split('-').map(Number);
-                    if (range === 'Below 2.0') {
-                        return students.filter(s => s.department === dept && s.gpa < 2.0).length;
-                    }
-                    return students.filter(s => s.department === dept && s.gpa >= min && s.gpa <= max).length;
-                });
-                return {
-                    label: dept,
-                    data: counts,
-                    backgroundColor: deptColors[idx % deptColors.length] + '66',
-                    borderColor: deptColors[idx % deptColors.length],
-                    borderWidth: 2
-                };
-            });
-
-            gpaDeptChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: gpaRanges,
-                    datasets: datasets.length ? datasets : [{
-                        label: 'No Data',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: 'rgba(255,255,255,0.05)'
+                    labels: ['Finance', 'Registry', 'Academic', 'Discipline'],
+                    datasets: [{
+                        label: 'Performance',
+                        data: [85, 92, 78, 88],
+                        backgroundColor: ['#818cf8', '#34d399', '#f59e0b', '#f472b6'],
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top', labels: { padding: 10, usePointStyle: true, boxWidth: 8 } }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
                         x: { grid: { display: false } }
                     }
                 }
             });
-        }
 
-        // ===== ADD FACULTY =====
-        function addFaculty() {
-            const name = document.getElementById('facultyName').value.trim();
-            const department = document.getElementById('facultyDept').value;
-            const title = document.getElementById('facultyTitle').value;
-            const specialization = document.getElementById('facultySpecialization').value.trim();
-            const resultDiv = document.getElementById('facultyResult');
-
-            if (!name) {
-                resultDiv.className = 'result-box show error';
-                resultDiv.textContent = '⚠️ Please enter faculty name';
-                return;
-            }
-
-            faculty.push({
-                id: faculty.length + 1,
-                name: name,
-                department: department,
-                title: title,
-                specialization: specialization || 'General',
-                students: Math.floor(Math.random() * 60) + 20,
-                status: 'ACTIVE'
+            // GPA Distribution Chart
+            const ctx2 = document.getElementById('gpaChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['3.5-4.0', '3.0-3.4', '2.5-2.9', '2.0-2.4', 'Below 2.0'],
+                    datasets: [{
+                        data: [18, 22, 25, 20, 15],
+                        backgroundColor: ['#10b981', '#818cf8', '#f59e0b', '#f472b6', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true } }
+                    },
+                    cutout: '65%'
+                }
             });
-
-            renderFacultyTable();
-            updateStats();
-            closeFacultyModal();
-            showResult('uploadResult', 'success', `✅ ${name} added to faculty`);
-
-            document.getElementById('facultyName').value = '';
-            document.getElementById('facultySpecialization').value = '';
-        }
-
-        // ===== MODAL FUNCTIONS =====
-        function showFacultyModal() {
-            document.getElementById('facultyModal').classList.add('show');
-        }
-
-        function closeFacultyModal() {
-            document.getElementById('facultyModal').classList.remove('show');
-            document.getElementById('facultyResult').className = 'result-box';
-        }
-
-        function viewStudent(studentNumber) {
-            showResult('uploadResult', 'info', `📊 Viewing student: ${studentNumber}`);
-        }
-
-        function editFaculty(id) {
-            showResult('uploadResult', 'info', `✏️ Editing faculty ID: ${id}`);
-        }
-
-        // ===== DOWNLOAD TEMPLATE =====
-        function downloadTemplate() {
-            const template = [
-                ['Faculty Name', 'Department', 'Title', 'Specialization', 'Students'],
-                ['Dr. John Smith', 'Computer Science', 'Professor', 'Data Science', '45'],
-                ['Dr. Jane Doe', 'Business', 'Associate Professor', 'Finance', '38'],
-                ['Dr. Bob Johnson', 'Engineering', 'Senior Lecturer', 'Mechanical', '52'],
-                ['Student Number', 'First Name', 'Last Name', 'Department', 'Programme', 'GPA'],
-                ['S2024001', 'Alice', 'Brown', 'Computer Science', 'BSc CS', '3.8'],
-                ['S2024002', 'Charlie', 'Davis', 'Business', 'BSc Business', '3.2']
-            ];
-            
-            const ws = XLSX.utils.aoa_to_sheet(template);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Deans Data');
-            XLSX.writeFile(wb, 'deans_department_template.xlsx');
-            showResult('uploadResult', 'success', '📥 Template downloaded successfully');
-        }
-
-        // ===== SHOW RESULT =====
-        function showResult(id, type, message) {
-            const resultDiv = document.getElementById(id);
-            resultDiv.className = `result-box show ${type}`;
-            resultDiv.textContent = message;
-            setTimeout(() => {
-                resultDiv.className = 'result-box';
-            }, 5000);
-        }
-
-        // ===== REFRESH =====
-        function refreshAll() {
-            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
-            renderFacultyTable();
-            renderStudentTable();
-            updateStats();
-            updateCharts();
-            showResult('uploadResult', 'info', '🔄 Refreshed');
-        }
-
-        // ===== SAMPLE DATA =====
-        function loadSampleData() {
-            // Generate faculty
-            const deptFaculty = {
-                'Computer Science': ['Dr. John Smith', 'Dr. Sarah Johnson', 'Prof. Michael Brown'],
-                'Business': ['Dr. Jane Doe', 'Prof. Robert Wilson', 'Dr. Emily Martinez'],
-                'Engineering': ['Dr. Bob Johnson', 'Dr. David Miller', 'Prof. Lisa Garcia'],
-                'Medicine': ['Dr. Alice Brown', 'Prof. James Anderson', 'Dr. Maria Thomas'],
-                'Law': ['Dr. Charlie Davis', 'Prof. Patricia Taylor', 'Dr. Joseph Moore']
-            };
-
-            const titles = ['Professor', 'Associate Professor', 'Assistant Professor', 'Senior Lecturer', 'Lecturer'];
-            const specializations = ['Data Science', 'Finance', 'Mechanical', 'Cardiology', 'Criminal Law', 'AI', 'Marketing', 'Software Engineering'];
-
-            faculty = [];
-            let id = 1;
-            for (const [dept, names] of Object.entries(deptFaculty)) {
-                names.forEach(name => {
-                    faculty.push({
-                        id: id++,
-                        name: name,
-                        department: dept,
-                        title: titles[Math.floor(Math.random() * titles.length)],
-                        specialization: specializations[Math.floor(Math.random() * specializations.length)],
-                        students: Math.floor(Math.random() * 40) + 20,
-                        status: 'ACTIVE'
-                    });
-                });
-            }
-
-            // Generate students
-            const firstNames = ['Alice', 'Bob', 'Charlie', 'David', 'Eva', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack',
-                'Karen', 'Leo', 'Mia', 'Noah', 'Olivia', 'Peter', 'Quinn', 'Rose', 'Sam', 'Tina'];
-            const lastNames = ['Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Garcia', 'Martinez', 'Robinson', 'Clark',
-                'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'King', 'Wright', 'Scott'];
-            const departments = ['Computer Science', 'Business', 'Engineering', 'Medicine', 'Law'];
-            const programmes = ['BSc CS', 'BSc Business', 'BSc Engineering', 'BSc Medicine', 'BSc Law'];
-
-            students = [];
-            for (let i = 0; i < 40; i++) {
-                const dept = departments[Math.floor(Math.random() * departments.length)];
-                const gpa = 1.5 + Math.random() * 2.5;
-                students.push({
-                    id: i + 1,
-                    student_number: `S${String(i + 1).padStart(4, '0')}`,
-                    first_name: firstNames[Math.floor(Math.random() * firstNames.length)],
-                    last_name: lastNames[Math.floor(Math.random() * lastNames.length)],
-                    department: dept,
-                    programme: programmes[departments.indexOf(dept)],
-                    gpa: gpa,
-                    status: gpa >= 2.0 ? 'PASS' : 'FAIL'
-                });
-            }
-
-            renderFacultyTable();
-            renderStudentTable();
-            updateStats();
-            updateCharts();
-            showResult('uploadResult', 'success', `✅ Sample data loaded! ${faculty.length} faculty, ${students.length} students`);
         }
 
         // ===== INIT =====
-        document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
-        loadSampleData();
+        function init() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login_with_rbac.html';
+                return;
+            }
+            const user = getUser();
+            document.getElementById('userDisplay').textContent = `👤 ${user ? user.name || user.username : 'User'}`;
+            
+            // Stats
+            document.getElementById('totalStudents').textContent = '42';
+            document.getElementById('totalDepts').textContent = '5';
+            document.getElementById('totalFaculty').textContent = '24';
+            document.getElementById('avgGPA').textContent = '3.2';
+            document.getElementById('passingRate').textContent = '78%';
+            
+            loadDeanInventory();
+            loadCharts();
+            document.getElementById('lastUpdate').textContent = '🕐 ' + new Date().toLocaleTimeString();
+        }
 
-        // Close modal on click outside
-        document.getElementById('facultyModal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) closeFacultyModal();
-        });
+        init();
     </script>
-    <!-- Logout Component -->
-    <script>addLogoutButton();</script>
 </body>
 </html>
-<script>
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        window.location.href = 'login_with_rbac.html';
-    }
-}
-function updateUserBadge() {
-    try {
-        const data = localStorage.getItem('user');
-        if (data) {
-            const user = JSON.parse(data);
-            document.getElementById('userBadge').textContent = `👤 ${user.name || user.username}`;
-        }
-    } catch {}
-}
-document.addEventListener('DOMContentLoaded', updateUserBadge);
-</script>
